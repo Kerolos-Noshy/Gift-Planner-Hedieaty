@@ -16,7 +16,6 @@ class AllFriends extends StatelessWidget {
       ),
       body: ListView(
           children: [
-            const SizedBox(height: 10,),
             SingleChildScrollView(
               padding: const EdgeInsets.all(15),
               child: Column(
@@ -28,21 +27,29 @@ class AllFriends extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            FriendAvatar(friend: singleFriend, showEventsNum: false,),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            Row(
                               children: [
-                                const SizedBox(height: 5,),
-                                Text(
-                                  singleFriend['name'],
-                                  style: AppStyles.headLineStyle3,
+                                FriendAvatar(
+                                  friend: singleFriend,
+                                  showEventsNotification: false,
+                                  showName: false,
                                 ),
-                                const SizedBox(height: 10,),
-                                Text(
-                                "Upcoming Events Number: ${singleFriend['upcoming_events_num']}",
-                                style: AppStyles.headLineStyle4,)
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      singleFriend['name'],
+                                      style: AppStyles.headLineStyle3,
+                                    ),
+                                    const SizedBox(height: 10,),
+                                    Text(
+                                      "Upcoming Events: ${singleFriend['upcoming_events_num']}",
+                                      style: AppStyles.headLineStyle4,)
+                                  ],
+                                ),
                               ],
                             ),
+
                             Column(
                               children: [
                                 Container(
@@ -63,15 +70,16 @@ class AllFriends extends StatelessWidget {
                             )
                           ],
                         ),
+                        const SizedBox(height: 10,),
                         Container(
                           height: 1,
                           width: 400,
                           color: Colors.grey[400],
-
                         ),
-                        const SizedBox(height: 20,)
+                        const SizedBox(height: 15,)
                       ],
-                    )).toList(),
+                    )
+                ).toList(),
               ),
             ),
           ]
