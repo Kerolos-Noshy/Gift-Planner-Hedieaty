@@ -14,24 +14,34 @@ class Home extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppStyles.bgColor,
       body: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 50),
+          // padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 50),
           children: [
-            Text(
-              "Hello There",
-              style: AppStyles.headLineStyle2,
+            const SizedBox(height: 20,),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 15),
+              child: Text(
+                "Hello There",
+                style: AppStyles.headLineStyle2,
+              ),
             ),
             const SizedBox(height: 20,),
-            const AppDoubleText(
-              bigText: "Friends",
-              smallText: "View all",
-              route: AppRoutes.allFriends,
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 15),
+              child: AppDoubleText(
+                bigText: "Friends",
+                smallText: "View all",
+                route: AppRoutes.allFriends,
+              ),
             ),
             const SizedBox(height: 10,),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Row(
-                children:
-                  friendsList.take(3).map((singleFriend) => FriendAvatar(friend: singleFriend)).toList(),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 15),
+                child: Row(
+                  children:
+                    friendsList.take(6).map((singleFriend) => FriendAvatar(friend: singleFriend)).toList(),
+                ),
               )
             )
           ],
