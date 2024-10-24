@@ -5,6 +5,7 @@ class FriendAvatar extends StatelessWidget {
   final Map<String, dynamic> friend;
   final bool showEventsNotification;
   final bool showName;
+  final double avatarSize = 65;
 
   const FriendAvatar({super.key, required this.friend, this.showEventsNotification=true, this.showName=true});
 
@@ -18,11 +19,11 @@ class FriendAvatar extends StatelessWidget {
             alignment: const AlignmentDirectional(1.2, -1),
             children: [
               Container(
-                height: 80,
-                width: 80,
+                height: avatarSize,
+                width: avatarSize,
                 padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(80),
+                  borderRadius: BorderRadius.circular(avatarSize),
                   border: Border.all(color: Colors.black, width: 1),
                   // image: DecorationImage(
                   //   image: AssetImage(friend['profile_image']==""?"assets/images/male.png":friend['profile_image']),
