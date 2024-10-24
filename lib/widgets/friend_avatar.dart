@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:hedieaty/views/res/styles/app_styles.dart';
 import 'package:hedieaty/widgets/notification_circle.dart';
 
 class FriendAvatar extends StatelessWidget {
   final Map<String, dynamic> friend;
-  final bool showEventsNum;
+  final bool showEventsNotification;
+  final bool showName;
 
-  const FriendAvatar({super.key, required this.friend, this.showEventsNum=true});
+  const FriendAvatar({super.key, required this.friend, this.showEventsNotification=true, this.showName=true});
 
   @override
   Widget build(BuildContext context) {
@@ -39,11 +39,10 @@ class FriendAvatar extends StatelessWidget {
                   ),
                 ),
               ),
-              NotificationCircle(upcomingEventsNum: showEventsNum?friend['upcoming_events_num']:0)
+              showEventsNotification?const NotificationCircle():const SizedBox(height: 0,width: 0,)
             ]
           ),
-          const SizedBox(height: 5,),
-          Text(showEventsNum?friend['name'].split(' ')[0]:"", style: AppStyles.headLineStyle4,)
+          showName?Text(friend['name'].split(' ')[0]):const SizedBox(height: 0,width: 0,)
         ],
       ),
     );
