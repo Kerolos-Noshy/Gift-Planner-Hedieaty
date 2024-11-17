@@ -1,10 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class NotificationCircle extends StatelessWidget {
-  final int upcomingEventsNum;
-
-  const NotificationCircle({super.key, this.upcomingEventsNum=0});
+  final int num;
+  const NotificationCircle({super.key, this.num=0});
 
   @override
   Widget build(BuildContext context) {
@@ -13,12 +11,12 @@ class NotificationCircle extends StatelessWidget {
       width: 20,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: upcomingEventsNum > 0 ? Colors.red[600]: Colors.transparent
+          color: Colors.red[600]
       ),
       margin: const EdgeInsets.only(right: 10),
       child: Center(
         child: Text(
-          upcomingEventsNum > 0 ? "$upcomingEventsNum": "",
+          "$num",
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
