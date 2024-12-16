@@ -1,248 +1,441 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../constants/styles/app_styles.dart';
+import 'package:hedieaty/models/repositories/event_repository.dart';
+import 'package:hedieaty/models/repositories/friend_repository.dart';
+import 'package:hedieaty/models/user_model.dart';
+import 'package:hedieaty/services/auth_service.dart';
+import 'package:hedieaty/widgets/personal_event_card.dart';
 
+
+import '../../models/repositories/user_repository.dart';
+import '../../routes/app_routes.dart';
 import '../../widgets/notification_circle.dart';
+import '../../widgets/section_header_view_all.dart';
 
-class ProfilePage extends StatelessWidget {
-
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
 
+class _ProfilePageState extends State<ProfilePage> {
+  final currentUser = AuthService().getCurrentUser();
+  User? userData;
+  int _friendCount = 0;
+  int _eventsCount = 0;
+  int _giftsCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+    _getUserStats();
+  }
+
+  Future<void> _loadUserData() async {
+    if (currentUser != null) {
+      final firebaseUid = currentUser.uid;
+      final data = await UserRepository().getUserById(firebaseUid);
+      if (data != null) {
+        setState(() {
+          userData = data;
+        });
+      }
+    }
+  }
+
+  Future<void> _getUserStats() async {
+    var userid = AuthService().getCurrentUser().uid;
+
+    // Fetch data before updating the state
+    List<User> friendsList = await FriendRepository().getAllFriends(userid);
+    int eventsCount = await EventRepository().getEventsCountByUserId(userid);
+
+    // Update the state once data is ready
+    setState(() {
+      _friendCount = friendsList.length;
+      _eventsCount = eventsCount;
+    });
+
+    // print("_friendCount updated to: $_friendCount");
+  }
 
   @override
   Widget build(BuildContext context) {
+    // print("_friendCount updated to: $_friendCount");
     return Scaffold(
-      backgroundColor: const Color(0xFFf1f4f9),
-      body: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          children: [
-            const SizedBox(height:40,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Container(
-                //   decoration: BoxDecoration(
-                //     color: Colors.white,
-                //     borderRadius: BorderRadius.circular(50),
-                //   ),
-                //   child: IconButton(
-                //       onPressed: ()=>{},
-                //       icon: const Icon(FluentSystemIcons.ic_fluent_settings_regular ,size: 28,)
-                //   ),
-                // ),
-                Stack(
-                  alignment: const Alignment(2.7, -1.2),
+      backgroundColor: const Color(0xFFf5f4f3),
+      body: userData == null
+        ? const Center(child: CircularProgressIndicator())
+        :SafeArea(
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Column(
                   children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(50),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.07),
-                            spreadRadius: 1,
-                            blurRadius: 10,
-                            offset: const Offset(1, 5),
+                    const SizedBox(height:20,),
+                    Padding(
+                      padding: const EdgeInsets.only(left:5, right: 10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Container(
+                          //   decoration: BoxDecoration(
+                          //     color: Colors.white,
+                          //     borderRadius: BorderRadius.circular(50),
+                          //   ),
+                          //   child: IconButton(
+                          //       onPressed: ()=>{},
+                          //       icon: const Icon(FluentSystemIcons.ic_fluent_settings_regular ,size: 28,)
+                          //   ),
+                          // ),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(50),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.07),
+                                  spreadRadius: 1,
+                                  blurRadius: 10,
+                                  offset: const Offset(1, 5),
+                                ),
+                              ],
+                            ),
+                            child: Builder(
+                              builder: (context) => IconButton(
+                                onPressed: () {
+                                  Scaffold.of(context).openDrawer();
+                                },
+                                icon: const Icon(Icons.menu ,size: 28,),
+                                tooltip: "Menu",
+                              ),
+
+                            ),
+                          ),
+
+                          Stack(
+                            alignment: const Alignment(2.7, -1.2),
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(50),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.07),
+                                      spreadRadius: 1,
+                                      blurRadius: 10,
+                                      offset: const Offset(1, 5),
+                                    ),
+                                  ],
+                                ),
+                                child: IconButton(
+                                  onPressed: () {
+                                    Navigator.pushNamed(context, AppRoutes.notifications);
+                                  },
+                                  icon: const Icon(Icons.notifications_none_outlined ,size: 28,),
+                                  tooltip: "Notifications",
+
+                                ),
+                              ),
+                              const NotificationCircle(num: 5,)
+                            ]
                           ),
                         ],
                       ),
-                      child: IconButton(
-                        onPressed: ()=>{},
-                        icon: const Icon(CupertinoIcons.bell ,size: 28,),
-                        tooltip: "Notifications",
-
-                      ),
                     ),
-                    const NotificationCircle(num: 5,)
-                  ]
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(50),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.07),
-                        spreadRadius: 1,
-                        blurRadius: 10,
-                        offset: const Offset(1, 5),
-                      ),
-                    ],
-                  ),
-                  child: IconButton(
-                    onPressed: ()=>{},
-                    icon: const Icon(Icons.menu ,size: 28,),
-                    tooltip: "Menu",
-                  ),
-                ),
-              ],
-            ),
-              Container (
-                height: 160,
-                width: 160,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(90),
-                  image: const DecorationImage(image: AssetImage("assets/images/messi.jpeg"), fit: BoxFit.cover),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 10,
-                      offset: const Offset(1, 5),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 20,),
-            SizedBox(
-              child: Text(
-                "Leo Messi",
-                style: AppStyles.headLineStyle2.copyWith(fontFamily: "SanFrancisco"),
-              ),
-            ),
-            const SizedBox(
-              child: Text(
-                "@leo_messi",
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20,),
-            Container(
-              height: 1,
-              width: 360,
-              color: Colors.grey[300],
-            ),
-            const SizedBox(height: 20,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                IconButton(
-                  onPressed: () {},
-                  hoverColor: Colors.transparent,
-                  focusColor: Colors.transparent,
-                  highlightColor: Colors.transparent,
-                  icon: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    width: 100,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.03),
-                          spreadRadius: 1,
-                          blurRadius: 10,
-                          offset: const Offset(1, 3),
+                      Container (
+                        height: 140,
+                        width: 140,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(90),
+                          image: DecorationImage(
+                              image: AssetImage(
+                                userData!.gender == 'm'?
+                                  "assets/images/male-avatar.png":
+                                  "assets/images/female-avatar.png"
+                              ), fit: BoxFit.cover
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              spreadRadius: 1,
+                              blurRadius: 10,
+                              offset: const Offset(1, 5),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                    const SizedBox(height: 20,),
+                    SizedBox(
+                      child: Text(
+                        userData!.name,
+                        style: GoogleFonts.cairo(
+                            textStyle: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w700
+                            )
+                        ),
+                      ),
                     ),
-                    child: Column(
+                    SizedBox(
+                      child: Text(
+                        userData!.email,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          "360",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
+                        IconButton(
+                          onPressed: () {},
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          icon: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            width: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  spreadRadius: 1,
+                                  blurRadius: 10,
+                                  offset: const Offset(1, 3),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  _eventsCount.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  "Events",
+                                  style:  GoogleFonts.roboto(
+                                    textStyle: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey[500]
+                                    ),
+                                  )
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                        Text(
-                          "Events",
-                          style:  GoogleFonts.roboto(
-                            textStyle: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[500]
+                        IconButton(
+                          highlightColor: Colors.transparent,
+                          onPressed: () async {
+                            Navigator.pushNamed(context, AppRoutes.allFriends);
+                          },
+                          icon: Container(
+                            width: 100,
+                            padding: const EdgeInsets.symmetric(vertical: 10),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  spreadRadius: 1,
+                                  blurRadius: 10,
+                                  offset: const Offset(1, 3),
+                                ),
+                              ],
                             ),
-                          )
+                            child: Column(
+                              children: [
+                               Text(
+                                 "$_friendCount",
+                                  style: const TextStyle(
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                               ),
+                                Text(
+                                  "Friends",
+                                  style:  GoogleFonts.roboto(
+                                    textStyle: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey[500]
+                                    ),
+                                  )
+                                )
+                              ],
+                            ),
+                          ),
+                        ),
+                        Container(
+                          width: 100,
+                          padding: const EdgeInsets.symmetric(vertical: 10,),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                spreadRadius: 1,
+                                blurRadius: 10,
+                                offset: const Offset(1, 3),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                "30",
+                                style:  TextStyle(
+                                    fontSize: 19,
+                                    fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                "Gifts",
+                                  style:  GoogleFonts.roboto(
+                                    textStyle: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.grey[500]
+                                    ),
+                                  )
+                              ),
+                            ],
+                          ),
                         )
                       ],
                     ),
-                  ),
+                   const SizedBox(height: 10,),
+                  ],
                 ),
-                Container(
-                  width: 100,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        spreadRadius: 1,
-                        blurRadius: 10,
-                        offset: const Offset(1, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "100",
-                        style:  TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: "SanFrancisco"
+              ),
+              const Padding(
+                padding: EdgeInsets.only(left: 25, right: 20),
+                child: SectionHeaderViewAll(
+                  text: "My Events",
+                  route: AppRoutes.allFriends,
+                ),
+              ),
+              const SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal:25, vertical: 10, ),
+                    child: Row(
+                        children: [
+                          PersonalEventCard(),
+                          PersonalEventCard(),
+                          PersonalEventCard(),
+                        ]
+                    ),
+                  )
+              ),
+              const SizedBox(height: 20,),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.9,
+                  child: ElevatedButton(
+                      onPressed: () async {
+                        List<User> f = await FriendRepository().getAllFriends(
+                          AuthService().getCurrentUser().uid
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
                         ),
                       ),
-                      Text(
-                        "Friends",
-                          style:  GoogleFonts.roboto(
-                            textStyle: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[500]
-                            ),
-                          )
+                      child: const Text(
+                        "My Pledged Gifts",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       )
-                    ],
                   ),
                 ),
-                Container(
-                  width: 100,
-                  padding: const EdgeInsets.symmetric(vertical: 10,),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.03),
-                        spreadRadius: 1,
-                        blurRadius: 10,
-                        offset: const Offset(1, 3),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "30",
-                        style:  TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: "SanFrancisco"
-                        ),
-                      ),
-                      Text(
-                        "Gifts",
-                          style:  GoogleFonts.roboto(
-                            textStyle: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.grey[500]
-                            ),
-                          )
-                      )
-                    ],
-                  ),
+              )
+            ],
+          ),
+        ),
+      drawer: Drawer(
+        width: MediaQuery.of(context).size.width * 0.7,
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.only(
+              topRight: Radius.circular(15),
+              bottomRight: Radius.circular(15)
+          ),
+        ),
+
+        child: ListView(
+          children: [
+            // const SizedBox(height: 25,),
+            Container(
+              // color: Colors.blue,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                    image: AssetImage(
+                        'assets/images/gifts_bg 2.webp'
+                    ),
+                    fit: BoxFit.cover
                 )
-              ],
-            )
+              ),
+              height: 180,
+            ),
+            const SizedBox(height: 10,),
+
+            const ListTile(
+              leading: Icon(Icons.room_preferences_outlined),
+              title: Text(
+                "Preferences",
+                style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16
+                ),
+              ),
+            ),
+            const ListTile(
+              title: Text(
+                "Settings",
+                  style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16
+                  )
+              ),
+              leading: Icon(Icons.settings),
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded),
+              title: const Text(
+                  "Logout",
+                  style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 16
+                  )
+              ),
+              onTap: () {
+                Navigator.pushReplacementNamed(context, AppRoutes.login);
+              },
+            ),
           ],
         ),
       ),
