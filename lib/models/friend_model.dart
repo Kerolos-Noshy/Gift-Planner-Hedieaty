@@ -1,6 +1,6 @@
 class Friend {
-  int userId;
-  int friendId;
+  String userId;
+  String friendId;
 
   Friend({
     required this.userId,
