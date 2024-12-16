@@ -1,28 +1,36 @@
 class User {
-  int? id;
+  String id;
   String name;
+  String phone;
   String email;
-  String? preferences;
   String gender;
-  String? profileImagePath;
+  String? preferences;
 
-  User({this.id, required this.name, required this.email, this.preferences, required this.gender, this.profileImagePath,});
+
+  User({
+    required this.id,
+    required this.name,
+    required this.phone,
+    required this.email,
+    required this.gender,
+    this.preferences,
+  });
 
   factory User.fromMap(Map<String, dynamic> map) => User(
     id: map['id'],
     name: map['name'],
+    phone: map['phone'],
     email: map['email'],
-    preferences: map['preferences'],
     gender: map['gender'],
-    profileImagePath: map['profile_image_path'],
+    preferences: map['preferences'],
   );
 
   Map<String, dynamic> toMap() => {
     'id': id,
     'name': name,
+    'phone': phone,
     'email': email,
-    'preferences': preferences,
     'gender': gender,
-    'profile_image_path': profileImagePath,
+    'preferences': preferences,
   };
 }
