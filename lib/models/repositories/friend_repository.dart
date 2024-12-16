@@ -15,7 +15,7 @@ class FriendRepository {
   }
 
   // Remove a friend relationship
-  Future<int> removeFriend(int userId, int friendId) async {
+  Future<int> removeFriend(String userId, String friendId) async {
     final db = await _dbHelper.database;
     return await db.delete(
       tableName,
@@ -25,7 +25,7 @@ class FriendRepository {
   }
 
   // Check if a friendship exists
-  Future<bool> friendshipExists(int userId, int friendId) async {
+  Future<bool> friendshipExists(String userId, String friendId) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> result = await db.query(
       tableName,
@@ -61,7 +61,7 @@ class FriendRepository {
   //   return results;
   // }
 
-  Future<List<User>> getFriends(int userId) async {
+  Future<List<User>> getFriends(String userId) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> results = await db.rawQuery('''
       SELECT u.* 
@@ -73,17 +73,48 @@ class FriendRepository {
     return results.map((map) => User.fromMap(map)).toList();
   }
 
-  // Get all users who have added the given user as a friend
-  Future<List<Friend>> getFriendsOf(int friendId) async {
+  Future<List<User>> getFriendsOf(String userId) async {
     final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> results = await db.query(
-      tableName,
-      where: 'friend_id = ?',
-      whereArgs: [friendId],
-    );
+    final List<Map<String, dynamic>> results = await db.rawQuery('''
+      SELECT u.* 
+      FROM Friends f
+      JOIN Users u ON f.user_id = u.id
+      WHERE f.friend_id = ?
+    ''', [userId]);
 
-    return results.map((map) => Friend.fromMap(map)).toList();
+    return results.map((map) => User.fromMap(map)).toList();
   }
 
+  Future<List<User>> getAllFriends(String userId) async {
+    List<User> allFriends = await getFriends(userId) + await getFriendsOf(userId);
 
+    return allFriends;
+  }
+
+  // // Get all users who have added the given user as a friend
+  // Future<List<Friend>> getFriendsOf(String friendId) async {
+  //   final db = await _dbHelper.database;
+  //   final List<Map<String, dynamic>> results = await db.query(
+  //     tableName,
+  //     where: 'friend_id = ? OR user_id = ?',
+  //     whereArgs: [friendId],
+  //   );
+  //
+  //   return results.map((map) => Friend.fromMap(map)).toList();
+  // }
+
+  Future<int> getFriendCount(String userId) async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> result = await db.rawQuery(
+      '''
+        SELECT COUNT(*) as friendCount
+        FROM Friends
+        WHERE user_id = ? OR friend_id = ?
+      ''',[userId]
+    );
+    if (result.isNotEmpty) {
+      return result.first['friendCount'] as int;
+    }
+    return 0;
+  }
 }
