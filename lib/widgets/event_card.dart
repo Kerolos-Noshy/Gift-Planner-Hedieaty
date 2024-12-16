@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hedieaty/models/repositories/user_repository.dart';
 import 'package:hedieaty/models/user_model.dart';
+import 'package:hedieaty/services/auth_service.dart';
 import 'package:hedieaty/widgets/friend_avatar.dart';
 
 
@@ -32,34 +33,47 @@ class EventCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Birthday Party"),
+              const Text("Birthday Party"),
               Container(
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(100),
 
                 ),
-                child: Icon(Icons.cake_outlined),
+                child: const Icon(Icons.cake_outlined),
               )
             ],
           ),
-          Divider(),
+          const Divider(),
 
           FutureBuilder<User?>(
-            future: UserRepository().getUserById(1),
+            future: UserRepository().getUserById(AuthService().getCurrentUser().uid),
             builder: (context, snapshot){
-              User friend = snapshot.data!;
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(child: FriendAvatar(friend: friend, showEventsNotification: false, showName: false,)),
-                  Expanded(child: Text(friend.name))
-                ]
-              );
+              if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data == null) {
+              return const Center(child: Text('No event found.'));
+              } else {
+                User friend = snapshot.data!;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 20),
+                  child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        FriendAvatar(friend: friend,
+                          showEventsNotification: false,
+                          showName: false,),
+                        Text(friend.name)
+                      ]
+                  ),
+                );
+              }
             }
           ),
-          SizedBox(height: 15,),
+          const SizedBox(height: 15,),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
