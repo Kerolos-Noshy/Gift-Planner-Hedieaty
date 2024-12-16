@@ -22,6 +22,27 @@ class _AllFriendsState extends State<AllFriends> {
 
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _phoneController = TextEditingController();
+  List<User> allFriends = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchFriends();
+  }
+
+  Future<void> _fetchFriends() async {
+    try {
+      List<User> friends = await FriendRepository().getAllFriends(
+          AuthService().getCurrentUser().uid
+      );
+      setState(() {
+        allFriends = friends;
+      });
+    } catch (error) {
+      print("Error fetching friends: $error");
+    }
+  }
+
 
   @override
   void dispose() {
@@ -157,9 +178,10 @@ class _AllFriendsState extends State<AllFriends> {
             icon: const Icon(Icons.search, size: 26,),
             tooltip: "Search",
             onPressed: () {
-              showSearch(context) {
-
-              }
+              showSearch(
+                context: context,
+                delegate: FriendSearchDelegate(allFriends),
+              );
             },
           ),
           IconButton(
@@ -313,3 +335,121 @@ class _AllFriendsState extends State<AllFriends> {
     );
   }
 }
+
+class FriendSearchDelegate extends SearchDelegate<User?> {
+  final List<User> allFriends;
+
+  FriendSearchDelegate(this.allFriends);
+
+  @override
+  String get searchFieldLabel => "Search friends";
+
+  @override
+  List<Widget>? buildActions(BuildContext context) {
+    return [
+      IconButton(
+        icon: const Icon(Icons.clear),
+        onPressed: () {
+          query = "";
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget? buildLeading(BuildContext context) {
+    return IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        close(context, null);
+      },
+    );
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+    final List<User> searchResults = allFriends
+        .where((friend) =>
+        friend.name.toLowerCase().contains(query.trim().toLowerCase()))
+        .toList();
+
+    if (searchResults.isEmpty) {
+      return const Center(
+        child: Text("No friends found."),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: searchResults.length,
+      itemBuilder: (context, index) {
+        final friend = searchResults[index];
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                FriendAvatar(
+                  friend: friend,
+                  showEventsNotification: false,
+                  showName: false,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  friend.name,
+                  style: GoogleFonts.lato(
+                    textStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    final List<User> suggestions = allFriends
+        .where((friend) =>
+        friend.name.toLowerCase().contains(query.trim().toLowerCase()))
+        .toList();
+
+    return ListView.builder(
+      itemCount: suggestions.length,
+      itemBuilder: (context, index) {
+        final friend = suggestions[index];
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              children: [
+                FriendAvatar(
+                  friend: friend,
+                  showEventsNotification: false,
+                  showName: false,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  friend.name,
+                  style: GoogleFonts.lato(
+                    textStyle: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
