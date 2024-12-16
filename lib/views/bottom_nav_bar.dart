@@ -1,9 +1,12 @@
 import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
+import 'package:hedieaty/views/event/events_page.dart';
+import 'package:hedieaty/views/gifts/gifts_page.dart';
 import 'package:hedieaty/views/home/home_page.dart';
+import 'package:hedieaty/views/profile/notifications_page.dart';
 import 'package:hedieaty/views/profile/profile_page.dart';
-import 'package:hedieaty/views/test.dart';
+import 'package:hedieaty/widgets/notification_circle.dart';
 import '../../constants/styles/app_styles.dart';
 
 class BottomNavBar extends StatefulWidget {
@@ -16,9 +19,9 @@ class BottomNavBar extends StatefulWidget {
 class _BottomNavBarState extends State<BottomNavBar> {
   final appScreens = [
     const HomePage(),
-    FriendsListPage(),
-    const Text("Search"),
-    const Text("Gifts"),
+    const EventsPage(),
+    const GiftsPage(),
+    const NotificationsPage(),
     const ProfilePage(),
   ];
 
@@ -92,20 +95,32 @@ class _BottomNavBarState extends State<BottomNavBar> {
             tooltip: "Events",
           ),
           BottomNavigationBarItem(
-            icon: Icon(FluentSystemIcons.ic_fluent_search_regular),
-            // activeIcon: Icon(FluentSystemIcons.ic_fluent_search_filled),
-            label: "Search",
-            tooltip: "Search",
-          ),
-          BottomNavigationBarItem(
             icon: Icon(FluentSystemIcons.ic_fluent_gift_regular),
-            // activeIcon: Icon(FluentSystemIcons.ic_fluent_gift_filled),
+            activeIcon: Icon(FluentSystemIcons.ic_fluent_gift_filled),
             label: "Gifts",
             tooltip: "Gifts",
           ),
           BottomNavigationBarItem(
+            icon: Stack(
+              alignment: AlignmentDirectional(5, -3.5),
+                children: [
+                  Icon(FluentSystemIcons.ic_fluent_alert_regular),
+                  NotificationCircle(num:5)
+                ]
+            ),
+            activeIcon: Stack(
+                alignment: AlignmentDirectional(5, -3.5),
+                children: [
+                  Icon(FluentSystemIcons.ic_fluent_alert_filled),
+                  NotificationCircle(num:5)
+                ]
+            ),
+            label: "Notifications",
+            tooltip: "Notifications",
+          ),
+          BottomNavigationBarItem(
             icon: Icon(FluentSystemIcons.ic_fluent_person_regular),
-            // activeIcon: Icon(FluentSystemIcons.ic_fluent_person_filled),
+            activeIcon: Icon(FluentSystemIcons.ic_fluent_person_filled),
             label: "Profile",
             tooltip: "Profile",
           ),
