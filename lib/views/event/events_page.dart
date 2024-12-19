@@ -2,13 +2,13 @@ import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/event_model.dart';
-import 'package:hedieaty/routes/app_routes.dart';
 import 'package:hedieaty/services/auth_service.dart';
+import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/user_service.dart';
+import 'package:hedieaty/views/event/add_event_page.dart';
 import 'package:hedieaty/widgets/event_card_big.dart';
 
 import '../../models/repositories/event_repository.dart';
-import '../../models/repositories/user_repository.dart';
 import '../../models/user_model.dart';
 
 class EventsPage extends StatefulWidget {
@@ -19,18 +19,19 @@ class EventsPage extends StatefulWidget {
 }
 
 class _EventsPageState extends State<EventsPage> {
-  final EventRepository _eventRepository = EventRepository();
+  List<Event> events = [];
 
-  late Future<List<Event>> _futureEvents;
+  Future<void> _fetchEvents() async {
+    events = await EventService().fetchUserEvents(AuthService.getCurrentUserId());
+    setState(() {
+
+    });
+  }
 
   @override
   void initState() {
     super.initState();
-    _futureEvents = _fetchEvents();
-  }
-
-  Future<List<Event>> _fetchEvents() async {
-    return await _eventRepository.getAllEvents();
+    _fetchEvents();
   }
 
   @override
@@ -52,7 +53,16 @@ class _EventsPageState extends State<EventsPage> {
         actions: [
           IconButton(
               onPressed: (){
-                Navigator.pushNamed(context, AppRoutes.addEvent);
+                // Navigator.pushNamed(context, AppRoutes.addEvent);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AddEventPage(
+
+                      onEventAdded: _fetchEvents, event: null,
+                    ),
+                  ),
+                );
               },
               icon: const Icon(
                 FluentSystemIcons.ic_fluent_calendar_add_regular,
@@ -67,7 +77,7 @@ class _EventsPageState extends State<EventsPage> {
       backgroundColor: const Color(0xFFf5f4f3),
       body: SafeArea(
         child: FutureBuilder<List<Event>>(
-          future: _futureEvents,
+          future: EventRepository().getUserEvents(AuthService().getCurrentUser().uid),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -93,7 +103,7 @@ class _EventsPageState extends State<EventsPage> {
                       return const Center(child: Text('No events found.'));
                       } else {
                         User? user = snapshot.data!;
-                        return EventCardBig(event: event, eventCreator: user,);
+                        return EventCardBig(event: event, eventCreator: user, onEventDeleted: _fetchEvents,);
                       }
                     }
                   );
