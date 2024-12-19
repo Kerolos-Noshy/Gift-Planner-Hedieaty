@@ -1,15 +1,17 @@
+import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/friend_model.dart';
-import 'package:hedieaty/models/repositories/user_repository.dart';
+import 'package:hedieaty/routes/app_routes.dart';
 import 'package:hedieaty/services/auth_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
+import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/widgets/friend_avatar.dart';
 
 import '../../constants/styles/app_styles.dart';
 import '../../models/repositories/event_repository.dart';
-import '../../models/repositories/friend_repository.dart';
 import '../../models/user_model.dart';
+import '../profile/friend_profile.dart';
 
 class AllFriends extends StatefulWidget {
   const AllFriends({super.key});
@@ -23,6 +25,7 @@ class _AllFriendsState extends State<AllFriends> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _phoneController = TextEditingController();
   List<User> allFriends = [];
+  bool friendAdded = false;
 
   @override
   void initState() {
@@ -32,7 +35,7 @@ class _AllFriendsState extends State<AllFriends> {
 
   Future<void> _fetchFriends() async {
     try {
-      List<User> friends = await FriendRepository().getAllFriends(
+      List<User> friends = await FriendService().getFriends(
           AuthService().getCurrentUser().uid
       );
       setState(() {
@@ -75,13 +78,22 @@ class _AllFriendsState extends State<AllFriends> {
             ),
           ),
           actions: [
-            TextButton(
+            IconButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: const Text('Cancel'),
+              icon: Text(
+                  "Cancel",
+                  style: GoogleFonts.breeSerif(
+                    textStyle: const TextStyle(
+                      color: Colors.blueAccent,
+                      fontSize: 15,
+
+                    ),
+                  )
+              ),
             ),
-            ElevatedButton(
+            IconButton(
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
                   final phoneNumber = _phoneController.text;
@@ -91,10 +103,35 @@ class _AllFriendsState extends State<AllFriends> {
 
                   if (success)
                     setState(() {});
-
                 }
               },
-              child: const Text('Add'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 1),
+              ),
+              icon: SizedBox(
+                width: 80,
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(FluentSystemIcons.ic_fluent_person_add_regular, color: Colors.white, size: 22,),
+                      const SizedBox(width: 8,),
+                      Text(
+                          "Add",
+                          style: GoogleFonts.breeSerif(
+                            textStyle: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 15,
+                            ),
+                          )
+                      ),
+                      const SizedBox(width: 4,),
+                    ]
+                ),
+              ),
             ),
           ],
         );
@@ -104,7 +141,7 @@ class _AllFriendsState extends State<AllFriends> {
 
   Future<bool> _addFriend(String phoneNumber) async {
     try {
-      User? currentUser = await UserRepository().getUserById(AuthService().getCurrentUser().uid);
+      User? currentUser = await UserService().getUser(AuthService().getCurrentUser().uid);
 
       if (phoneNumber == currentUser!.phone) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -114,8 +151,8 @@ class _AllFriendsState extends State<AllFriends> {
         );
         return false;
       }
-      // Check if the phone number exists in the database
-      User? friendData = await UserRepository().getUserByPhone(phoneNumber);
+      
+      User? friendData = await UserService().getUserByPhone(phoneNumber);
 
       if (friendData == null) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -126,7 +163,7 @@ class _AllFriendsState extends State<AllFriends> {
         return false;
       }
 
-      bool friendshipExist = await FriendRepository().friendshipExists(currentUser.id, friendData.id);
+      bool friendshipExist = await FriendService().friendshipExists(currentUser.id, friendData.id);
       if (friendshipExist) {
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -139,11 +176,12 @@ class _AllFriendsState extends State<AllFriends> {
       }
       else {
         Friend friend = Friend(userId: currentUser.id, friendId:  friendData.id);
-        await FriendRepository().addFriend(
-            friend
-        );
-        print('friend added to database');
-        FriendService().addFriend(friend);
+        // local table for friends is useless
+        // await FriendRepository().addFriend(
+        //     friend
+        // );
+        // print('friend added to database');
+        FriendService().addFriend(friend.userId ,friend.friendId);
         print('friend added to fire store');
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -151,6 +189,7 @@ class _AllFriendsState extends State<AllFriends> {
               content: Text("Friend added successfully")
           )
         );
+        friendAdded = true;
         return true;
       }
     } catch (e) {
@@ -162,20 +201,39 @@ class _AllFriendsState extends State<AllFriends> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppStyles.bgColor,
+      backgroundColor: const Color(0xFFf5f4f3),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFf5f4f3),
+        surfaceTintColor: const Color(0xFFf5f4f3),
+        shadowColor: Colors.grey,
         title: Text(
-            "All Friends",
-            style: GoogleFonts.markaziText(
-                textStyle: const TextStyle(
-                    fontSize: 33,
-                    fontWeight: FontWeight.w600
-                )
+          "All Friends",
+          style: GoogleFonts.markaziText(
+            textStyle: const TextStyle(
+                fontSize: 33,
+                fontWeight: FontWeight.w600
             )
+          )
         ),
+        leading: IconButton(
+            onPressed: () {
+              print("********* $friendAdded");
+              if (friendAdded) {
+                friendAdded = false;
+                Navigator.pushReplacementNamed(context, AppRoutes.homePage);
+              }
+              else
+                Navigator.pop(context);
+            },
+            icon: const Icon(Icons.arrow_back)
+        ),
+        automaticallyImplyLeading: false,
         actions: <Widget>[
           IconButton(
-            icon: const Icon(Icons.search, size: 26,),
+            icon: const Icon(
+              FluentSystemIcons.ic_fluent_search_regular,
+              size: 26,
+            ),
             tooltip: "Search",
             onPressed: () {
               showSearch(
@@ -185,7 +243,10 @@ class _AllFriendsState extends State<AllFriends> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.person_add_alt_rounded, size: 26,),
+            icon: const Icon(
+              FluentSystemIcons.ic_fluent_person_add_regular,
+              size: 26,
+            ),
             tooltip: "Add Friend",
             onPressed: _showAddFriendDialog,
           )
@@ -195,7 +256,7 @@ class _AllFriendsState extends State<AllFriends> {
         children: [
           // const SizedBox(height: 20,),
           FutureBuilder<List<User>>(
-            future: FriendRepository().getAllFriends(AuthService().getCurrentUser().uid),
+            future: FriendService().getFriends(AuthService().getCurrentUser().uid),
             builder: (context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -208,11 +269,9 @@ class _AllFriendsState extends State<AllFriends> {
                 List<User> friends = snapshot.data!;
 
                 return SingleChildScrollView(
-                  padding: const EdgeInsets.all(15),
                   child: Column(
                     children: friends.map((singleFriend) {
                       return FutureBuilder<int>(
-                        // TODO: check the number of events for each friend is correct
                         future: EventRepository().getEventsCountByUserId(singleFriend.id),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -254,12 +313,6 @@ class _AllFriendsState extends State<AllFriends> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 10),
-                                Container(
-                                  height: 1,
-                                  width: 400,
-                                  color: Colors.grey[400],
-                                ),
                                 const SizedBox(height: 15),
                               ],
                             );
@@ -277,47 +330,52 @@ class _AllFriendsState extends State<AllFriends> {
                           int eventCount = snapshot.data ?? 0;
                           return Column(
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    children: [
-                                      FriendAvatar(
-                                        friend: singleFriend,
-                                        showEventsNotification: false,
-                                        showName: false,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            singleFriend.name,
-                                            style: GoogleFonts.lato(
-                                              textStyle: const TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
+                              IconButton(
+                                color: Colors.red,
+                                onPressed: (){
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => FriendProfile(friendData: singleFriend,),
+                                      )
+                                  );
+                                },
+                                icon: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        FriendAvatar(
+                                          friend: singleFriend,
+                                          showEventsNotification: false,
+                                          showName: false,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              singleFriend.name,
+                                              style: GoogleFonts.lato(
+                                                textStyle: const TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(height: 10),
-                                          Text(
-                                            "Upcoming Events: $eventCount",
-                                            style: AppStyles.headLineStyle4
-                                                .copyWith(color: Colors.grey[700]),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Container(
-                                height: 1,
-                                width: 400,
-                                color: Colors.grey[400],
+                                            const SizedBox(height: 10),
+                                            Text(
+                                              "Upcoming Events: $eventCount",
+                                              style: AppStyles.headLineStyle4
+                                                  .copyWith(color: Colors.grey[700]),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
                               const SizedBox(height: 15),
                             ],
@@ -379,36 +437,49 @@ class FriendSearchDelegate extends SearchDelegate<User?> {
       );
     }
 
-    return ListView.builder(
-      itemCount: searchResults.length,
-      itemBuilder: (context, index) {
-        final friend = searchResults[index];
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
+    return Container(
+      color: const Color(0xFFf5f4f3),
+      child: ListView.builder(
+        itemCount: searchResults.length,
+        itemBuilder: (context, index) {
+          final friend = searchResults[index];
+          return IconButton(
+            onPressed: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FriendProfile(friendData: friend,),
+                  )
+              );
+            },
+            icon: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                FriendAvatar(
-                  friend: friend,
-                  showEventsNotification: false,
-                  showName: false,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  friend.name,
-                  style: GoogleFonts.lato(
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  children: [
+                    FriendAvatar(
+                      friend: friend,
+                      showEventsNotification: false,
+                      showName: false,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      friend.name,
+                      style: GoogleFonts.lato(
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -419,36 +490,49 @@ class FriendSearchDelegate extends SearchDelegate<User?> {
         friend.name.toLowerCase().contains(query.trim().toLowerCase()))
         .toList();
 
-    return ListView.builder(
-      itemCount: suggestions.length,
-      itemBuilder: (context, index) {
-        final friend = suggestions[index];
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
+    return Container(
+      color: const Color(0xFFf5f4f3),
+      child: ListView.builder(
+        itemCount: suggestions.length,
+        itemBuilder: (context, index) {
+          final friend = suggestions[index];
+          return IconButton(
+            onPressed: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                  builder: (context) => FriendProfile(friendData: friend,),
+                )
+              );
+            },
+            icon: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                FriendAvatar(
-                  friend: friend,
-                  showEventsNotification: false,
-                  showName: false,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  friend.name,
-                  style: GoogleFonts.lato(
-                    textStyle: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                Row(
+                  children: [
+                    FriendAvatar(
+                      friend: friend,
+                      showEventsNotification: false,
+                      showName: false,
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Text(
+                      friend.name,
+                      style: GoogleFonts.lato(
+                        textStyle: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }
