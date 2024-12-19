@@ -4,8 +4,9 @@ class Event {
   final DateTime date;
   final String location;
   final String description;
-  final int userId;
-  // TODO: add event type
+  final String userId;
+  final String eventType;
+  final bool isPublic;
 
   Event({
     this.id,
@@ -14,6 +15,8 @@ class Event {
     required this.location,
     required this.description,
     required this.userId,
+    required this.eventType,
+    required this.isPublic,
   });
 
   Map<String, dynamic> toMap() {
@@ -24,6 +27,8 @@ class Event {
       'location': location,
       'description': description,
       'user_id': userId,
+      'event_type': eventType,
+      "is_public": isPublic ? 1 : 0,
     };
   }
 
@@ -35,6 +40,8 @@ class Event {
       location: map['location'],
       description: map['description'],
       userId: map['user_id'],
+      eventType: map['event_type'],
+      isPublic: map['is_public'] == 0 ? false : true,
     );
   }
 }
