@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
 import '../../models/event_model.dart';
-import '../../models/repositories/event_repository.dart';
 import '../../models/repositories/user_repository.dart';
 import '../../models/user_model.dart';
 import '../../routes/app_routes.dart';
@@ -18,30 +18,6 @@ class FriendProfile extends StatefulWidget {
 }
 
 class _FriendProfileState extends State<FriendProfile> {
-  int _friendCount = 0;
-  int _eventsCount = 0;
-  int _giftsCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _getUserStats();
-  }
-
-  Future<void> _getUserStats() async {
-    var userid = widget.friendData.id;
-
-    List<User> friendsList = await FriendService().getFriends(userid);
-    List<Event> events = await EventRepository().getUserEvents(userid);
-    int eventsCount = events.length;
-
-    setState(() {
-      _friendCount = friendsList.length;
-      _eventsCount = eventsCount;
-    });
-
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -132,13 +108,38 @@ class _FriendProfileState extends State<FriendProfile> {
                         ),
                         child: Column(
                           children: [
-                            Text(
-                              _eventsCount.toString(),
-                              style: const TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            FutureBuilder(
+                                future: EventService().getUserEventsCount(widget.friendData.id),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(child: Text(
+                                        'Error: ${snapshot.error}'));
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data == null) {
+                                    return const Center(
+                                        child: Text(
+                                        "0",
+                                        style: const TextStyle(
+                                          fontSize: 19,
+                                          fontWeight: FontWeight.w600,
+                                          ),
+                                        ));
+                                  } else {
+                                    return Text(
+                                      snapshot.data.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    );
+                                  }
+                                }
                             ),
+
                             Text(
                                 "Events",
                                 style:  GoogleFonts.roboto(
@@ -169,12 +170,36 @@ class _FriendProfileState extends State<FriendProfile> {
                         ),
                         child: Column(
                           children: [
-                            Text(
-                              "$_friendCount",
-                              style: const TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            FutureBuilder(
+                                future: FriendService().getFriendsCount(widget.friendData.id),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(child: Text(
+                                        'Error: ${snapshot.error}'));
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data == null) {
+                                    return const Center(
+                                        child: Text(
+                                          "0",
+                                          style: const TextStyle(
+                                            fontSize: 19,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ));
+                                  } else {
+                                    return Text(
+                                      snapshot.data.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    );
+                                  }
+                                }
                             ),
                             Text(
                                 "Friends",
@@ -241,7 +266,7 @@ class _FriendProfileState extends State<FriendProfile> {
               ),
             ),
             FutureBuilder<List<Event>>(
-              future: EventRepository().getUserEvents(widget.friendData.id),
+              future: EventService().fetchUserEvents(widget.friendData.id),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -281,19 +306,6 @@ class _FriendProfileState extends State<FriendProfile> {
                 }
               },
             )
-            // const SingleChildScrollView(
-            //     scrollDirection: Axis.horizontal,
-            //     child: Padding(
-            //       padding: EdgeInsets.symmetric(horizontal:25, vertical: 10, ),
-            //       child: Row(
-            //           children: [
-            //             PersonalEventCard(),
-            //             PersonalEventCard(),
-            //             PersonalEventCard(),
-            //           ]
-            //       ),
-            //     )
-            // ),
           ],
         ),
       ),
