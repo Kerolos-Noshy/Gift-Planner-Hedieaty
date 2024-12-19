@@ -11,6 +11,7 @@ class FriendAvatar extends StatefulWidget {
   final bool showName;
   final double avatarSize;
   final bool showUpcomingEvents;
+  final int eventsCount;
 
   const FriendAvatar({
     super.key,
@@ -19,6 +20,8 @@ class FriendAvatar extends StatefulWidget {
     this.showName = true,
     this.showUpcomingEvents = true,
     this.avatarSize = 65,
+    this.eventsCount = 0,
+
   });
 
   @override
@@ -69,25 +72,9 @@ class _FriendAvatarState extends State<FriendAvatar> {
                       ),
                     ),
                   ),
-                  widget.showEventsNotification?
-                  FutureBuilder(
-                    future: EventRepository().getEventsCountByUserId(widget.friend.id),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                       return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                       return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data! == null) {
-                       return const Center(child: Text('No events found.'));
-                      } else {
-                        final _eventsNum = snapshot.data!;
-                        if (_eventsNum > 0 ) {
-                          return NotificationCircle(num: _eventsNum,);
-                        }
-                        return SizedBox();
-                   }
-                 }
-                ): const SizedBox(height: 0,width: 0,),
+                  widget.showEventsNotification && widget.eventsCount > 0?
+                  NotificationCircle(num: widget.eventsCount,)
+                  : const SizedBox(height: 0,width: 0,),
               ]
             ),
           ),
