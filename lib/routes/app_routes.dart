@@ -5,6 +5,8 @@ class AppRoutes{
   static const signup = "/signup";
   static const notifications = "/notifications";
   static const friendProfile = "/friend_profile";
+  static const addEvent = "/add_event";
+  static const gifts = "/gifts";
 
 
 }
