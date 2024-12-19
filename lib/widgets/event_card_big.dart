@@ -12,10 +12,13 @@ import '../utils/utils.dart';
 class EventCardBig extends StatefulWidget {
   final Event event;
   final User eventCreator;
+  final VoidCallback onEventDeleted;
+
   const EventCardBig({
     super.key,
     required this.event,
-    required this.eventCreator
+    required this.eventCreator,
+    required this.onEventDeleted
   });
 
 
@@ -81,7 +84,12 @@ class _EventCardBigState extends State<EventCardBig> {
                             text: "Remaining Gifts: 4"
                         ),
                         // TODO: add a condition for event status (private or public)
-                        // widget.event.status == 1 ?
+                        widget.event.isPublic ?
+                        const EventCardFieldSmall(
+                          ico: Icons.visibility_outlined,
+                          text: "Public Event",
+                          // icon_bg_color: Colors.green,
+                        ):
                         const EventCardFieldSmall(
                           ico: Icons.visibility_off_outlined,
                           text: "Private Event",
@@ -139,7 +147,7 @@ class _EventCardBigState extends State<EventCardBig> {
                       isScrollControlled: true,
                       context: context,
                       builder: (BuildContext context) {
-                        return EventDetails(eventData: widget.event, eventCreator: widget.eventCreator);
+                        return EventDetails(eventData: widget.event, eventCreator: widget.eventCreator, onEventDeleted: widget.onEventDeleted,);
                       },
                     );
                   },
