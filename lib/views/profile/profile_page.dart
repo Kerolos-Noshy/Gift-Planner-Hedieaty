@@ -1,15 +1,17 @@
+import 'package:fluentui_icons/fluentui_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/repositories/event_repository.dart';
-import 'package:hedieaty/models/repositories/friend_repository.dart';
 import 'package:hedieaty/models/user_model.dart';
 import 'package:hedieaty/services/auth_service.dart';
+import 'package:hedieaty/services/friend_service.dart';
+import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/widgets/personal_event_card.dart';
 
 
+import '../../models/event_model.dart';
 import '../../models/repositories/user_repository.dart';
 import '../../routes/app_routes.dart';
-import '../../widgets/notification_circle.dart';
 import '../../widgets/section_header_view_all.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -36,7 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadUserData() async {
     if (currentUser != null) {
       final firebaseUid = currentUser.uid;
-      final data = await UserRepository().getUserById(firebaseUid);
+      final data = await UserService().getUser(firebaseUid);
       if (data != null) {
         setState(() {
           userData = data;
@@ -49,7 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
     var userid = AuthService().getCurrentUser().uid;
 
     // Fetch data before updating the state
-    List<User> friendsList = await FriendRepository().getAllFriends(userid);
+    List<User> friendsList = await FriendService().getFriends(userid);
     int eventsCount = await EventRepository().getEventsCountByUserId(userid);
 
     // Update the state once data is ready
@@ -63,12 +65,25 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    // print("_friendCount updated to: $_friendCount");
     return Scaffold(
       backgroundColor: const Color(0xFFf5f4f3),
+      appBar: AppBar(
+        title: Text(
+          "Profile",
+          style: GoogleFonts.markaziText(
+            textStyle: const TextStyle(
+              fontSize: 34,
+              fontWeight: FontWeight.w600
+            )
+          )
+        ),
+        backgroundColor: const Color(0xFFf5f4f3),
+        surfaceTintColor: const Color(0xFFf5f4f3),
+        shadowColor: Colors.grey,
+      ),
       body: userData == null
         ? const Center(child: CircularProgressIndicator())
-        :SafeArea(
+        :SingleChildScrollView(
           child: Column(
             children: [
               Padding(
@@ -76,88 +91,17 @@ class _ProfilePageState extends State<ProfilePage> {
                 child: Column(
                   children: [
                     const SizedBox(height:20,),
-                    Padding(
-                      padding: const EdgeInsets.only(left:5, right: 10),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // Container(
-                          //   decoration: BoxDecoration(
-                          //     color: Colors.white,
-                          //     borderRadius: BorderRadius.circular(50),
-                          //   ),
-                          //   child: IconButton(
-                          //       onPressed: ()=>{},
-                          //       icon: const Icon(FluentSystemIcons.ic_fluent_settings_regular ,size: 28,)
-                          //   ),
-                          // ),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(50),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.07),
-                                  spreadRadius: 1,
-                                  blurRadius: 10,
-                                  offset: const Offset(1, 5),
-                                ),
-                              ],
-                            ),
-                            child: Builder(
-                              builder: (context) => IconButton(
-                                onPressed: () {
-                                  Scaffold.of(context).openDrawer();
-                                },
-                                icon: const Icon(Icons.menu ,size: 28,),
-                                tooltip: "Menu",
-                              ),
-
-                            ),
-                          ),
-
-                          Stack(
-                            alignment: const Alignment(2.7, -1.2),
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(50),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.07),
-                                      spreadRadius: 1,
-                                      blurRadius: 10,
-                                      offset: const Offset(1, 5),
-                                    ),
-                                  ],
-                                ),
-                                child: IconButton(
-                                  onPressed: () {
-                                    Navigator.pushNamed(context, AppRoutes.notifications);
-                                  },
-                                  icon: const Icon(Icons.notifications_none_outlined ,size: 28,),
-                                  tooltip: "Notifications",
-
-                                ),
-                              ),
-                              const NotificationCircle(num: 5,)
-                            ]
-                          ),
-                        ],
-                      ),
-                    ),
                       Container (
-                        height: 140,
-                        width: 140,
+                        height: 120,
+                        width: 120,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(90),
                           image: DecorationImage(
-                              image: AssetImage(
-                                userData!.gender == 'm'?
-                                  "assets/images/male-avatar.png":
-                                  "assets/images/female-avatar.png"
-                              ), fit: BoxFit.cover
+                            image: AssetImage(
+                              userData!.gender == 'm'?
+                                "assets/images/male-avatar.png":
+                                "assets/images/female-avatar.png"
+                            ), fit: BoxFit.cover
                           ),
                           boxShadow: [
                             BoxShadow(
@@ -175,8 +119,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         userData!.name,
                         style: GoogleFonts.cairo(
                             textStyle: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700
                             )
                         ),
                       ),
@@ -227,9 +171,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                   "Events",
                                   style:  GoogleFonts.roboto(
                                     textStyle: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.grey[500]
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[500]
                                     ),
                                   )
                                 )
@@ -270,9 +214,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                   "Friends",
                                   style:  GoogleFonts.roboto(
                                     textStyle: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.grey[500]
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[500]
                                     ),
                                   )
                                 )
@@ -300,17 +244,17 @@ class _ProfilePageState extends State<ProfilePage> {
                               const Text(
                                 "30",
                                 style:  TextStyle(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.w700,
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
                               Text(
                                 "Gifts",
                                   style:  GoogleFonts.roboto(
                                     textStyle: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.grey[500]
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.grey[500]
                                     ),
                                   )
                               ),
@@ -330,48 +274,83 @@ class _ProfilePageState extends State<ProfilePage> {
                   route: AppRoutes.allFriends,
                 ),
               ),
-              const SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal:25, vertical: 10, ),
-                    child: Row(
-                        children: [
-                          PersonalEventCard(),
-                          PersonalEventCard(),
-                          PersonalEventCard(),
-                        ]
-                    ),
-                  )
+              FutureBuilder<List<Event>>(
+                future: EventRepository().getUserEvents(AuthService().getCurrentUser().uid),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text('Error: ${snapshot.error}'));
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No events found.'));
+                  } else {
+                    final events = snapshot.data!;
+                    return SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: 276,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: events.length,
+                        itemBuilder: (context, index) {
+                          final event = events[index];
+                          // return EventCardBig(event: event, eventCreator: ,);
+                          return FutureBuilder(
+                              future: UserRepository().getUserById(event.userId),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(child: CircularProgressIndicator());
+                                } else if (snapshot.hasError) {
+                                  return Center(child: Text('Error: ${snapshot.error}'));
+                                } else if (!snapshot.hasData || snapshot.data == null) {
+                                  return const Center(child: Text('No events found.'));
+                                } else {
+                                  User? user = snapshot.data!;
+                                  return PersonalEventCard(event: event, eventCreator: user,);
+                                }
+                              }
+                          );
+                        },
+                      ),
+                    );
+                  }
+                },
               ),
+
               const SizedBox(height: 20,),
+              // TODO: remove this button if the navbar state is not accessible
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.9,
-                  child: ElevatedButton(
-                      onPressed: () async {
-                        List<User> f = await FriendRepository().getAllFriends(
-                          AuthService().getCurrentUser().uid
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                child: IconButton(
+                  onPressed: () async {
+
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+
+                  icon: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(FluentSystemIcons.ic_fluent_gift_regular, color: Colors.white,),
+                        const SizedBox(width: 5,),
+                        Text(
+                            "My Pledged Gifts",
+                            style: GoogleFonts.breeSerif(
+                              textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                              ),
+                            )
                         ),
-                      ),
-                      child: const Text(
-                        "My Pledged Gifts",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      )
+                        const SizedBox(width: 8,),
+                      ]
                   ),
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -403,15 +382,18 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 10,),
 
-            const ListTile(
-              leading: Icon(Icons.room_preferences_outlined),
-              title: Text(
+            ListTile(
+              leading: const Icon(Icons.room_preferences_outlined),
+              title: const Text(
                 "Preferences",
                 style: TextStyle(
                     fontWeight: FontWeight.w500,
                     fontSize: 16
                 ),
               ),
+              onTap: () {
+                print(DateTime(2024, 12, 18, 21, 30).isAfter(DateTime.now()));
+              },
             ),
             const ListTile(
               title: Text(
