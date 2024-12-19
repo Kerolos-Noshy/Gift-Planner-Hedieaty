@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fluentui_icons/fluentui_icons.dart';
+import 'package:hedieaty/services/auth_service.dart';
 import 'package:hedieaty/views/event/text_field_with_icon.dart';
+
+import '../../models/user_model.dart';
 
 
 class GiftItem extends StatefulWidget {
@@ -9,13 +12,15 @@ class GiftItem extends StatefulWidget {
   final String text;
   final Color icon_bg_color;
   final bool isPledged;
+  final User giftCreator;
 
   const GiftItem({
     super.key,
     this.ico = FluentSystemIcons.ic_fluent_gift_filled,
     required this.text,
-    this.icon_bg_color = const Color(0xB6AF081F),
+    this.icon_bg_color = Colors.green, //const Color(0xB6AF081F)
     this.isPledged = false,
+    required this.giftCreator,
   });
 
   @override
@@ -86,6 +91,9 @@ class _GiftItemState extends State<GiftItem> {
             // ),
             SizedBox(width: widget.isPledged ? 8 : 18,),
             // TODO:  hide pledge button for the event creator only if it is not pledged
+            widget.giftCreator.id == AuthService().getCurrentUser().uid && !widget.isPledged?
+            const SizedBox():
+            !widget.isPledged ?
             IconButton(
               onPressed: () {},
               // TODO: replace tooltip with pledger name
@@ -107,14 +115,15 @@ class _GiftItemState extends State<GiftItem> {
                   ),
                 )
               ),
-            ),
+            )
+            :const SizedBox(),
             // const SizedBox(width: 5,)
           ],
         ),
         children: [
           // Divider(),
           // TODO: if there is no description hide this widget
-          const TextFieldWithIcon(
+          const CustomListTile(
             ico: Icons.view_headline_sharp,
             text: "description",
             iconSize: 18,
@@ -122,7 +131,7 @@ class _GiftItemState extends State<GiftItem> {
             icon_bg_color: Color(0xE0630FD3),
           ),
 
-          const TextFieldWithIcon(
+          const CustomListTile(
             ico: Icons.category,
             text: "Category",
             iconSize: 18,
@@ -130,7 +139,7 @@ class _GiftItemState extends State<GiftItem> {
             icon_bg_color: Color(0xE0630FD3),
           ),
 
-          const TextFieldWithIcon(
+          const CustomListTile(
             ico: Icons.attach_money_rounded,
             text: "price",
             iconSize: 18,
@@ -138,7 +147,7 @@ class _GiftItemState extends State<GiftItem> {
             icon_bg_color: Color(0xE0630FD3),
           ),
 
-          const TextFieldWithIcon(
+          const CustomListTile(
             ico: Icons.check_rounded,
             text: "status",
             iconSize: 18,
@@ -146,19 +155,19 @@ class _GiftItemState extends State<GiftItem> {
             icon_bg_color: Color(0xE0630FD3),
           ),
 
-          const TextFieldWithIcon(
+          const CustomListTile(
             ico: Icons.person,
             text: "pledger",
             iconSize: 18,
             iconPadding: 7,
             icon_bg_color: Color(0xE0630FD3),
           ),
-
+          const SizedBox(height: 10,),
           // TODO: Show these buttons for the event creator only if the gift not pledged
+          widget.giftCreator.id == AuthService().getCurrentUser().uid?
           Row (
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 15,),
               widget.isPledged ? const SizedBox() : IconButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(
@@ -168,7 +177,6 @@ class _GiftItemState extends State<GiftItem> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
                 ),
-                // TODO: show edit button for the event creator only
                 icon: Row(
                   children: [
                     const Icon(Icons.edit, color: Colors.white,),
@@ -197,7 +205,6 @@ class _GiftItemState extends State<GiftItem> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
                 ),
-                // TODO: show edit button for the event creator only
                 icon: Row(
                   children: [
                     const Icon(Icons.delete, color: Colors.white,),
@@ -215,8 +222,8 @@ class _GiftItemState extends State<GiftItem> {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 15,),
+          ) : const SizedBox(),
+          const SizedBox(height: 10,),
         ],
       ),
     );
