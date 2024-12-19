@@ -1,13 +1,21 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/event_model.dart';
 import 'package:hedieaty/services/auth_service.dart';
+import 'package:hedieaty/utils/utils.dart';
 
 import '../../models/repositories/event_repository.dart';
+import '../../routes/app_routes.dart';
 import '../../services/event_service.dart';
 
 class AddEventPage extends StatefulWidget {
+  final Event? event;
+  final VoidCallback onEventAdded;
+  const AddEventPage({
+    super.key,
+    required this.event,
+    required this.onEventAdded,
+  });
   @override
   _AddEventPageState createState() => _AddEventPageState();
 }
@@ -15,17 +23,33 @@ class AddEventPage extends StatefulWidget {
 class _AddEventPageState extends State<AddEventPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers for input fields
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  TextEditingController _dateController = TextEditingController();
-  TextEditingController _timeController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
 
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
   String? _eventType;
   bool _isPublic = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.event != null) {
+      _nameController.text = widget.event!.name;
+      _selectedDate = widget.event!.date;
+      _selectedTime = TimeOfDay(hour: widget.event!.date.hour, minute: widget.event!.date.minute,) ;
+      _dateController.text = _selectedDate!.toLocal().toString().split(' ')[0];
+      _timeController.text = convertTo12HourFormat("${widget.event!.date.hour}:${widget.event!.date.minute}");
+      _locationController.text = widget.event!.location;
+      _descriptionController.text = widget.event!.description;
+      _eventType = widget.event!.eventType;
+      _isPublic = widget.event!.isPublic;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +59,7 @@ class _AddEventPageState extends State<AddEventPage> {
         surfaceTintColor: const Color(0xFFf5f4f3),
         shadowColor: Colors.grey,
         title: Text(
-            "Add New Event",
+            widget.event == null? "Add New Event" : "Edit Event",
             style: GoogleFonts.markaziText(
                 textStyle: const TextStyle(
                     fontSize: 35,
@@ -73,6 +97,7 @@ class _AddEventPageState extends State<AddEventPage> {
           
                   // Event Type Field
                   DropdownButtonFormField<String>(
+                    dropdownColor: Color(0xFFf5f4f3),
                     value: _eventType,
                     items: const [
                       // weddings,
@@ -169,8 +194,11 @@ class _AddEventPageState extends State<AddEventPage> {
                     ),
                     maxLines: 3,
                   ),
-                  const SizedBox(height: 16),
-          
+                  widget.event == null ?
+                  const SizedBox(height: 16):
+                  const SizedBox(),
+
+                  widget.event == null ?
                   SwitchListTile(
                     // inactiveThumbColor: Colors.white,
                     inactiveTrackColor: const Color(0xFFf5f4f3),
@@ -183,7 +211,7 @@ class _AddEventPageState extends State<AddEventPage> {
                         _isPublic = value;
                       });
                     },
-                  ),
+                  ): const SizedBox(),
           
                   const SizedBox(height: 24),
                   Center(
@@ -202,10 +230,12 @@ class _AddEventPageState extends State<AddEventPage> {
                         icon: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.add, color: Colors.white,),
+                              widget.event == null ?
+                              const Icon(Icons.add, color: Colors.white,)
+                              :const Icon(Icons.edit, color: Colors.white,),
                               const SizedBox(width: 2,),
                               Text(
-                                  "Add Event",
+                                  widget.event == null ? "Add Event": "Edit Event",
                                   style: GoogleFonts.breeSerif(
                                     textStyle: const TextStyle(
                                       color: Colors.white,
@@ -247,7 +277,13 @@ class _AddEventPageState extends State<AddEventPage> {
   Future<void> _pickTime() async {
     TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime:
+      widget.event == null ?
+      TimeOfDay.now()
+      :TimeOfDay(
+        hour: widget.event!.date.hour,
+        minute: widget.event!.date.minute,
+      ) ,
     );
 
     if (pickedTime != null) {
@@ -276,32 +312,58 @@ class _AddEventPageState extends State<AddEventPage> {
     if (_formKey.currentState!.validate()) {
 
       final newEvent = Event(
-        name: _nameController.text.trim(),
+        id: widget.event?.id,
+        documentId: widget.event?.documentId,
+        name: _nameController.text,
         date: getEventDateTime()!,
-        location: _locationController.text.trim(),
-        description: _descriptionController.text.trim(),
-        userId: AuthService().getCurrentUser().uid,
+        location: _locationController.text,
+        description: _descriptionController.text,
+        userId: widget.event?.userId ?? AuthService().getCurrentUser().uid,
         eventType: _eventType!,
-        isPublic: _isPublic
+        isPublic: _isPublic,
       );
 
-      if (_isPublic) {
-        // Add to Firestore
-        await EventService().addEvent(newEvent);
-        print('event added to firestore');
+      // if (_isPublic) {
+      //   // Add to Firestore
+      //   await EventService().addEvent(AuthService().getCurrentUser().uid, newEvent);
+      //   print('event added to firestore');
+      // }
+      //
+      // // Add to local database
+      // await EventRepository().addEvent(newEvent);
+      // print ('event added to local database');
+
+      if (widget.event != null) { // edit
+        if (_isPublic)
+          await EventService().updateEvent(AuthService().getCurrentUser().uid, newEvent);
+
+        await EventRepository().updateEvent(newEvent);
+
+        widget.onEventAdded();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Event updated successfully!")),
+        );
+      } else {
+        String? docID;
+        if (_isPublic) {
+          docID = await EventService().addEvent(AuthService().getCurrentUser().uid, newEvent);
+          print(docID);
+          print('***********');
+          newEvent.documentId = docID;
+          print(newEvent.documentId);
+          await EventService().updateEvent(AuthService().getCurrentUser().uid, newEvent);
+        }
+        await EventRepository().addEvent(newEvent);
+
+        widget.onEventAdded();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Event added successfully!")),
+        );
       }
 
-      // Add to local database
-      await EventRepository().addEvent(newEvent);
-      print ('event added to local database');
-
-
-      // Show success message or navigate back
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Event added successfully!")),
-      );
-
-      Navigator.pop(context);
+      Navigator.popUntil(context, ModalRoute. withName(AppRoutes.homePage));
 
       _nameController.clear();
       _locationController.clear();
@@ -315,6 +377,7 @@ class _AddEventPageState extends State<AddEventPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _dateController.dispose();
     _locationController.dispose();
     _descriptionController.dispose();
     super.dispose();
