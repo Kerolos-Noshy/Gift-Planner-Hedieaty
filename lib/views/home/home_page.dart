@@ -1,37 +1,53 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hedieaty/models/repositories/event_repository.dart';
 import 'package:hedieaty/models/user_model.dart';
 import 'package:hedieaty/services/auth_service.dart';
+import 'package:hedieaty/services/friend_service.dart';
 
-import '../../models/repositories/friend_repository.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/section_header_view_all.dart';
 import '../../widgets/event_card.dart';
 import '../../widgets/friend_avatar.dart';
 import '../../constants/styles/app_styles.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFf5f4f3),
-      body: SafeArea(
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Stack(
-                alignment: AlignmentDirectional.bottomCenter.add(AlignmentDirectional(0, 0.3)),
+                alignment: AlignmentDirectional.bottomCenter.add(
+                    const AlignmentDirectional(0, 0.3)),
                 children: [
                   Container(
                     height: 200,
                     width: MediaQuery.sizeOf(context).width,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
+                    decoration: BoxDecoration(
+                      image: const DecorationImage(
                         image: AssetImage('assets/images/gifts_bg 3.jpg'),
                         fit: BoxFit.cover
-                      )
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.8),
+                          spreadRadius: 2,
+                          blurRadius: 13,
+                          offset: const Offset(-1, 1),
+                        ),
+                      ],
                     ),
                     padding: const EdgeInsets.only(
                       left: 20,
@@ -50,35 +66,8 @@ class HomePage extends StatelessWidget {
                   ),
                 ]
               ),
-              const SizedBox(height: 10,),
-              // Center(
-              //   child: Container(
-              //     // height: 40,
-              //     width: MediaQuery.sizeOf(context).width*0.9,
-              //     decoration: BoxDecoration(
-              //       border: Border.all(color: Colors.grey[200]!),
-              //       borderRadius: BorderRadius.circular(12),
-              //       color: Colors.white,
-              //       boxShadow: [
-              //         BoxShadow(
-              //           color: Colors.black.withOpacity(0.2),
-              //           spreadRadius: 0.2,
-              //           blurRadius: 1,
-              //           offset: const Offset(0, 1),
-              //         ),
-              //       ],
-              //     ),
-              //     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
-              //     child: const Row(
-              //       children: [
-              //         Icon(Icons.search),
-              //         SizedBox(width: 10,),
-              //         Text("Search")
-              //       ],
-              //     ),
-              //   ),
-              // ),
-              const SizedBox(height: 5,),
+              const SizedBox(height: 20,),
+
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 15),
                 child: SectionHeaderViewAll(
@@ -86,32 +75,51 @@ class HomePage extends StatelessWidget {
                   route: AppRoutes.allFriends,
                 ),
               ),
-              const SizedBox(height: 10,),
-              FutureBuilder<List<User>>(
-                future: FriendRepository().getAllFriends(AuthService().getCurrentUser().uid),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No friends found.'));
-                  } else {
-                    // Now we have the friends data from the database
-                    List<User> friends = snapshot.data!;
-                    // print(friends.map((friend) => friend.name));
-                    return SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 15),
-                        child: Row(
-                          // Limit the number of friends displayed to 5
-                          children: friends.take(5).map((singleFriend) => FriendAvatar(friend: singleFriend)).toList(),
-                        ),
-                      ),
-                    );
-                  }
-                },
+              // const SizedBox(height: 10,),
+              SizedBox(
+                height: 100,
+                width: MediaQuery.of(context).size.width*.95,
+                child: FutureBuilder<List<User>>(
+                  future: FriendService().getFriends(AuthService().getCurrentUser().uid),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No friends found.'));
+                    } else {
+                      List<User> friends = snapshot.data!;
+                      return ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: friends.length,
+                        itemBuilder: (context, index) {
+                          final friend = friends[index];
+                          return FutureBuilder(
+                            // TODO: get the events count from fire store
+                              future: EventRepository().getEventsCountByUserId(friend.id),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const Center(child: CircularProgressIndicator());
+                                } else if (snapshot.hasError) {
+                                  return Center(child: Text('Error: ${snapshot.error}'));
+                                } else if (!snapshot.hasData || snapshot.data! == null) {
+                                  return const Center(child: Text('No friends found.'));
+                                } else {
+                                  return Row(
+                                    children: [
+                                      const SizedBox(width: 15,),
+                                      FriendAvatar(friend: friend),
+                                    ],
+                                  );
+                                }
+                              }
+                          );
+                        }
+                      );
+                    }
+                  },
+                ),
               ),
               const SizedBox(height: 10,),
               const Padding(
@@ -136,24 +144,40 @@ class HomePage extends StatelessWidget {
                   )
               ),
               const SizedBox(height: 15,),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: ElevatedButton(
-                  onPressed: () {},
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, AppRoutes.addEvent);
+                  },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.blueAccent,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
-                    minimumSize: Size(MediaQuery.of(context).size.width, 50)
                   ),
-                  child: Text(
-                    "Create Your Own Event/List",
-                    style: AppStyles.headLineStyle3.copyWith(color: Colors.white),
+
+                  icon: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.add, color: Colors.white,),
+                        const SizedBox(width: 2,),
+                        Text(
+                            "Create Your Own Event",
+                            style: GoogleFonts.breeSerif(
+                              textStyle: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 17,
+                              ),
+                            )
+                        ),
+                        const SizedBox(width: 8,),
+                      ]
                   ),
                 ),
-              )
+              ),
             ],
         ),
       ),
