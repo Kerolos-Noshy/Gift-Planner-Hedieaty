@@ -7,6 +7,7 @@ class AppRoutes{
   static const friendProfile = "/friend_profile";
   static const addEvent = "/add_event";
   static const gifts = "/gifts";
+  static const events = "/events";
 
 
 }
