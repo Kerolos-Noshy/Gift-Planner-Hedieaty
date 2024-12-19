@@ -19,8 +19,11 @@ class _AddEventPageState extends State<AddEventPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  TextEditingController _dateController = TextEditingController();
+  TextEditingController _timeController = TextEditingController();
 
   DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
   String? _eventType;
   bool _isPublic = false;
 
@@ -44,152 +47,180 @@ class _AddEventPageState extends State<AddEventPage> {
       backgroundColor: const Color(0xFFf5f4f3),
       body: Padding(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 5,),
-                // Event Name Field
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: "Event Name",
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter the event name";
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Event Type Field
-                DropdownButtonFormField<String>(
-                  value: _eventType,
-                  items: const [
-                    // weddings,
-                    // engagements, graduations, and holidays
-                    DropdownMenuItem(value: 'birthday', child: Text('Birthday')),
-                    DropdownMenuItem(value: 'engagement', child: Text('Engagement')),
-                    DropdownMenuItem(value: 'graduations', child: Text('Graduations')),
-                    DropdownMenuItem(value: 'holiday', child: Text('Holiday')),
-                    DropdownMenuItem(value: 'other', child: Text('Other')),
-                  ],
-                  decoration: const InputDecoration(labelText: 'Event Type', border: OutlineInputBorder(),),
-                  onChanged: (value) {
-                    setState(() {
-                      _eventType = value!;
-                    });
-                  },
-                  validator: (value) => value == null ? 'Please enter the event type' : null,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Event Date Picker
-                GestureDetector(
-                  onTap: _pickDate,
-                  child: AbsorbPointer(
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        labelText: _selectedDate != null
-                            ? "Date: ${_selectedDate!.toLocal().toString().split(' ')[0]}"
-                            : "Select Event Date",
-                        border: const OutlineInputBorder(),
-                      ),
-                      validator: (value) {
-                        if (_selectedDate == null) {
-                          return "Please select a date";
-                        }
-                        // if (_selectedDate! l DateTime.now())
-                        return null;
-                      },
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 5,),
+                  // Event Name Field
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: "Event Name",
+                      border: OutlineInputBorder(),
                     ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter the event name";
+                      }
+                      return null;
+                    },
                   ),
-                ),
-
-                const SizedBox(height: 16),
-
-                TextFormField(
-                  controller: _locationController,
-                  decoration: const InputDecoration(
-                    labelText: "Event Location",
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 16),
+          
+                  // Event Type Field
+                  DropdownButtonFormField<String>(
+                    value: _eventType,
+                    items: const [
+                      // weddings,
+                      // engagements, graduations, and holidays
+                      DropdownMenuItem(value: 'Birthday', child: Text('Birthday')),
+                      DropdownMenuItem(value: 'Engagement', child: Text('Engagement')),
+                      DropdownMenuItem(value: 'Graduation', child: Text('Graduation')),
+                      DropdownMenuItem(value: 'Holiday', child: Text('Holiday')),
+                      DropdownMenuItem(value: 'Other', child: Text('Other')),
+                    ],
+                    decoration: const InputDecoration(labelText: 'Event Type', border: OutlineInputBorder(),),
+                    onChanged: (value) {
+                      setState(() {
+                        _eventType = value!;
+                      });
+                    },
+                    validator: (value) => value == null ? 'Please enter the event type' : null,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter the event location";
-                    }
-                    return null;
-                  },
-                ),
-
-                const SizedBox(height: 16),
-
-                // Event Description Field
-                TextFormField(
-                  controller: _descriptionController,
-                  decoration: const InputDecoration(
-                    labelText: "Event Description (Optional)",
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-
-                SwitchListTile(
-                  // inactiveThumbColor: Colors.white,
-                  inactiveTrackColor: const Color(0xFFf5f4f3),
-                  activeTrackColor: Colors.green,
-                  title: const Text("Make It Public?", style: TextStyle(fontSize: 17),),
-                  secondary: const Icon(Icons.public, size: 26,),
-                  value: _isPublic,
-                  onChanged: (value) {
-                    setState(() {
-                      _isPublic = value;
-                    });
-                  },
-                ),
-
-                const SizedBox(height: 24),
-                Center(
-                  child: SizedBox(
-                    width: 160,
-                    child: IconButton(
-                      onPressed: _submitForm,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(7),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                      ),
-
-                      icon: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.add, color: Colors.white,),
-                            const SizedBox(width: 2,),
-                            Text(
-                                "Add Event",
-                                style: GoogleFonts.breeSerif(
-                                  textStyle: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                  ),
-                                )
+          
+                  const SizedBox(height: 16),
+          
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.45,
+                        child: GestureDetector(
+                          onTap: _pickDate,
+                          child: AbsorbPointer(
+                            child: TextFormField(
+                              controller: _dateController,
+                              decoration: const InputDecoration(
+                                labelText: "Event Date",
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (_selectedDate == null) {
+                                  return "Please select a date";
+                                }
+                                return null;
+                              },
                             ),
-                            const SizedBox(width: 8,),
-                          ]
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        width: MediaQuery.of(context).size.width * 0.45,
+                        child: GestureDetector(
+                          onTap: _pickTime,
+                          child: AbsorbPointer(
+                            child: TextFormField(
+                              controller: _timeController,
+                              decoration: const InputDecoration(
+                                labelText:  "Event Time",
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (_selectedTime == null) {
+                                  return "Please select a time";
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+          
+                  const SizedBox(height: 16),
+          
+                  TextFormField(
+                    controller: _locationController,
+                    decoration: const InputDecoration(
+                      labelText: "Event Location",
+                      border: OutlineInputBorder(),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return "Please enter the event location";
+                      }
+                      return null;
+                    },
+                  ),
+          
+                  const SizedBox(height: 16),
+          
+                  // Event Description Field
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: "Event Description (Optional)",
+                      border: OutlineInputBorder(),
+                    ),
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+          
+                  SwitchListTile(
+                    // inactiveThumbColor: Colors.white,
+                    inactiveTrackColor: const Color(0xFFf5f4f3),
+                    activeTrackColor: Colors.green,
+                    title: const Text("Make It Public?", style: TextStyle(fontSize: 17),),
+                    secondary: const Icon(Icons.public, size: 26,),
+                    value: _isPublic,
+                    onChanged: (value) {
+                      setState(() {
+                        _isPublic = value;
+                      });
+                    },
+                  ),
+          
+                  const SizedBox(height: 24),
+                  Center(
+                    child: SizedBox(
+                      width: 160,
+                      child: IconButton(
+                        onPressed: _submitForm,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+                        ),
+
+                        icon: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.add, color: Colors.white,),
+                              const SizedBox(width: 2,),
+                              Text(
+                                  "Add Event",
+                                  style: GoogleFonts.breeSerif(
+                                    textStyle: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 17,
+                                    ),
+                                  )
+                              ),
+                              const SizedBox(width: 8,),
+                            ]
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -208,8 +239,37 @@ class _AddEventPageState extends State<AddEventPage> {
     if (pickedDate != null) {
       setState(() {
         _selectedDate = pickedDate;
+        _dateController.text = _selectedDate!.toLocal().toString().split(' ')[0];
       });
     }
+  }
+
+  Future<void> _pickTime() async {
+    TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        _selectedTime = pickedTime;
+        _timeController.text = _selectedTime!.format(context);
+      });
+    }
+
+  }
+
+  DateTime? getEventDateTime() {
+    if (_selectedDate != null && _selectedTime != null) {
+      return DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      );
+    }
+    return null; // If either date or time is not selected
   }
 
   void _submitForm() async {
@@ -217,11 +277,12 @@ class _AddEventPageState extends State<AddEventPage> {
 
       final newEvent = Event(
         name: _nameController.text.trim(),
-        date: _selectedDate!,
+        date: getEventDateTime()!,
         location: _locationController.text.trim(),
         description: _descriptionController.text.trim(),
         userId: AuthService().getCurrentUser().uid,
         eventType: _eventType!,
+        isPublic: _isPublic
       );
 
       if (_isPublic) {
@@ -229,6 +290,7 @@ class _AddEventPageState extends State<AddEventPage> {
         await EventService().addEvent(newEvent);
         print('event added to firestore');
       }
+
       // Add to local database
       await EventRepository().addEvent(newEvent);
       print ('event added to local database');
