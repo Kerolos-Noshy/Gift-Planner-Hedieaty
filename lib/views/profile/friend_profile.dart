@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
+import 'package:hedieaty/services/user_service.dart';
 import '../../constants/styles/app_styles.dart';
 import '../../models/event_model.dart';
-import '../../models/repositories/user_repository.dart';
 import '../../models/user_model.dart';
 import '../../services/gift_service.dart';
 import '../../widgets/personal_event_card.dart';
@@ -286,7 +286,6 @@ class _FriendProfileState extends State<FriendProfile> {
               children: [
                 Padding(
                   padding: EdgeInsets.only(left: 25, right: 20, top: 20, bottom: 5),
-                  // TODO: remove the view all button
                     child: Text("Events", style: AppStyles.headLineStyle2,)
                 ),
               ],
@@ -312,7 +311,7 @@ class _FriendProfileState extends State<FriendProfile> {
                         final event = events[index];
                         // return EventCardBig(event: event, eventCreator: ,);
                         return FutureBuilder(
-                            future: UserRepository().getUserById(event.userId),
+                            future: UserService().getUser(event.userId),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
                                 return const Center(child: CircularProgressIndicator());
