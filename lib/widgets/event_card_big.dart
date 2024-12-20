@@ -78,7 +78,7 @@ class _EventCardBigState extends State<EventCardBig> {
                             ico: Icons.celebration_rounded,
                             text: widget.event.eventType
                         ),
-                        // TODO: create a function that return the number of the remaining gifts of event
+                        //  create a function that return the number of the remaining gifts of event
                         // widget.event.isPublic?
                         // FutureBuilder(
                         //     future: GiftService.countUnPledgedGifts(widget.event.userId, widget.event.documentId!),
@@ -163,7 +163,6 @@ class _EventCardBigState extends State<EventCardBig> {
                             ico: Icons.calendar_month,
                             text: formatDate(widget.event.date)
                         ),
-                        // TODO: add a function that calculate the difference between now and event day
                         EventCardFieldSmall(
                             ico: Icons.access_time_outlined,
                             text: TimeOfDay(
@@ -201,7 +200,11 @@ class _EventCardBigState extends State<EventCardBig> {
                       isScrollControlled: true,
                       context: context,
                       builder: (BuildContext context) {
-                        return EventDetails(eventData: widget.event, eventCreator: widget.eventCreator, onEventDeleted: widget.onEventDeleted,);
+                        return EventDetails(
+                          eventData: widget.event,
+                          eventCreator: widget.eventCreator,
+                          onEventDeleted: widget.onEventDeleted,
+                        );
                       },
                     );
                   },
