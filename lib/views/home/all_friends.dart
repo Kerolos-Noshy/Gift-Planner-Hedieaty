@@ -8,6 +8,7 @@ import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
 import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/widgets/friend_avatar.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../constants/styles/app_styles.dart';
 import '../../models/user_model.dart';
@@ -59,10 +60,11 @@ class _AllFriendsState extends State<AllFriends> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Add Friend'),
+          title: Text('Add Friend', style: GoogleFonts.markaziText(textStyle: TextStyle(fontSize: 30)),),
           content: Form(
             key: _formKey,
             child: TextFormField(
+              key: const Key("PhoneNumberField"),
               controller: _phoneController,
               decoration: const InputDecoration(labelText: 'Friend\'s Phone Number'),
               keyboardType: TextInputType.phone,
@@ -94,6 +96,7 @@ class _AllFriendsState extends State<AllFriends> {
               ),
             ),
             IconButton(
+              key: const Key("ConfirmAddButton"),
               onPressed: () async {
                 if (_formKey.currentState!.validate()) {
                   final phoneNumber = _phoneController.text;
@@ -186,7 +189,9 @@ class _AllFriendsState extends State<AllFriends> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text("Friend added successfully")
+            key: Key("AddFriendSnack"),
+              content: Text("Friend added successfully"),
+            duration: Duration(seconds: 3),
           )
         );
         friendAdded = true;
@@ -243,6 +248,7 @@ class _AllFriendsState extends State<AllFriends> {
             },
           ),
           IconButton(
+            key: const Key("AddFriendButton"),
             icon: const Icon(
               FluentSystemIcons.ic_fluent_person_add_regular,
               size: 26,
@@ -259,7 +265,11 @@ class _AllFriendsState extends State<AllFriends> {
             future: FriendService().getFriends(AuthService().getCurrentUser().uid),
             builder: (context, AsyncSnapshot snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(child:
+                LoadingAnimationWidget.threeRotatingDots(
+                  color: Colors.orange,
+                  size: 30,
+                ),);
               } else if (snapshot.hasError) {
                 return Center(child: Text('Error: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
