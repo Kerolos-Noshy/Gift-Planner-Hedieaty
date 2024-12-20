@@ -4,12 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/friend_model.dart';
 import 'package:hedieaty/routes/app_routes.dart';
 import 'package:hedieaty/services/auth_service.dart';
+import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
 import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/widgets/friend_avatar.dart';
 
 import '../../constants/styles/app_styles.dart';
-import '../../models/repositories/event_repository.dart';
 import '../../models/user_model.dart';
 import '../profile/friend_profile.dart';
 
@@ -201,10 +201,10 @@ class _AllFriendsState extends State<AllFriends> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFf5f4f3),
+      backgroundColor:  const Color(0xFFf5f4f3),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFf5f4f3),
-        surfaceTintColor: const Color(0xFFf5f4f3),
+        backgroundColor:  const Color(0xFFf5f4f3),
+        surfaceTintColor:  const Color(0xFFf5f4f3),
         shadowColor: Colors.grey,
         title: Text(
           "All Friends",
@@ -217,7 +217,7 @@ class _AllFriendsState extends State<AllFriends> {
         ),
         leading: IconButton(
             onPressed: () {
-              print("********* $friendAdded");
+              // TODO: replace this with callback function
               if (friendAdded) {
                 friendAdded = false;
                 Navigator.pushReplacementNamed(context, AppRoutes.homePage);
@@ -272,7 +272,7 @@ class _AllFriendsState extends State<AllFriends> {
                   child: Column(
                     children: friends.map((singleFriend) {
                       return FutureBuilder<int>(
-                        future: EventRepository().getEventsCountByUserId(singleFriend.id),
+                        future: EventService().getUserEventsCount(singleFriend.id),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return Column(
