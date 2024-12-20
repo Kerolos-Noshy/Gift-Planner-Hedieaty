@@ -16,17 +16,65 @@ class GiftsPage extends StatefulWidget {
 }
 
 class _GiftsPageState extends State<GiftsPage> {
-  Future<List<Map<String, dynamic>>> fetchPledgedGiftsData() async {
+  late Future<List<Map<String, dynamic>>> _giftsFuture;
+  List<Map<String, dynamic>> _sortedGifts = [];
+  String _sortCriterion = 'Name';
+
+  @override
+  void initState() {
+    super.initState();
+    _giftsFuture = fetchAndSortGifts();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchAndSortGifts() async {
     final gifts = await GiftService.getPledgedGifts(AuthService().getCurrentUser().uid);
 
-    return Future.wait(gifts.map((gift) async {
+    final pledgedGiftsData = await Future.wait(gifts.map((gift) async {
       final event = await EventService().getEventById(gift.giftCreatorId, gift.eventDocId);
-
-      return {
-        'gift': gift,
-        'event': event,
-      };
+      return {'gift': gift, 'event': event};
     }).toList());
+
+    // Sort data before assigning to _sortedGifts
+    pledgedGiftsData.sort((a, b) {
+      final giftA = a['gift'] as Gift;
+      final giftB = b['gift'] as Gift;
+
+      switch (_sortCriterion) {
+        case 'Category':
+          return giftA.category.compareTo(giftB.category);
+        case 'Status':
+        // Sort by whether `pledger_id` is null or not
+          final isPledgedA = giftA.pledgerId != null ? 0 : 1;
+          final isPledgedB = giftB.pledgerId != null ? 0 : 1;
+          return isPledgedA.compareTo(isPledgedB);
+        case 'Name':
+        default:
+          return giftA.name.compareTo(giftB.name);
+      }
+    });
+
+    return pledgedGiftsData;
+  }
+
+  void _sortGifts(String criterion) {
+    setState(() {
+      _sortCriterion = criterion;
+
+      _sortedGifts.sort((a, b) {
+        final giftA = a['gift'] as Gift;
+        final giftB = b['gift'] as Gift;
+
+        switch (_sortCriterion) {
+          case 'Category':
+            return giftA.category.compareTo(giftB.category);
+          case 'Status':
+            return giftA.status.compareTo(giftB.status);
+          case 'Name':
+          default:
+            return giftA.name.compareTo(giftB.name);
+        }
+      });
+    });
   }
 
   @override
@@ -37,58 +85,91 @@ class _GiftsPageState extends State<GiftsPage> {
         surfaceTintColor: const Color(0xFFf5f4f3),
         shadowColor: Colors.grey,
         title: Text(
-            "My Pledged Gifts",
-            style: GoogleFonts.markaziText(
-                textStyle: const TextStyle(
-                    fontSize: 35,
-                    fontWeight: FontWeight.w600
-                )
-            )
+          "My Pledged Gifts",
+          style: GoogleFonts.markaziText(
+            textStyle: const TextStyle(fontSize: 35, fontWeight: FontWeight.w600),
+          ),
         ),
+        actions: [
+          const Icon(Icons.sort_outlined),
+          const SizedBox(width: 5),
+          DropdownButton<String>(
+            dropdownColor: Colors.white,
+            value: _sortCriterion,
+            items: [
+              DropdownMenuItem(
+                value: 'Name',
+                child: Text('Name',
+                  style: GoogleFonts.markaziText(
+                    textStyle: const TextStyle(fontSize: 22),
+                  ),
+                )
+              ),
+              DropdownMenuItem(
+                  value: 'Category',
+                  child: Text('Category',
+                  style: GoogleFonts.markaziText(
+                    textStyle: const TextStyle(fontSize: 22),
+                  ),
+                  )
+              ),
+              DropdownMenuItem(
+                  value: 'Status',
+                  child: Text('Status',
+                    style: GoogleFonts.markaziText(
+                      textStyle: const TextStyle(fontSize: 22),
+                    ),
+                  )),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                _sortGifts(value);
+              }
+            },
+          ),
+        ],
       ),
       backgroundColor: const Color(0xFFf5f4f3),
       body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              children: [
-                const SizedBox(height: 15,),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Column(
+            children: [
 
+              Expanded(
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _giftsFuture,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    } else if (snapshot.hasError) {
+                      return Center(child: Text('Error: ${snapshot.error}'));
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Center(child: Text('No pledged gifts found.'));
+                    } else {
+                      _sortedGifts = snapshot.data!;
+                      return ListView.builder(
+                        itemCount: _sortedGifts.length,
+                        itemBuilder: (context, index) {
+                          final data = _sortedGifts[index];
+                          final gift = data['gift'] as Gift;
+                          final event = data['event'] as Event;
 
-              FutureBuilder<List<Map<String, dynamic>>>(
-                future: fetchPledgedGiftsData(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No pledged gifts found.'));
-                  } else {
-                    final pledgedGiftsData = snapshot.data!;
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: pledgedGiftsData.length,
-                      itemBuilder: (context, index) {
-                        final data = pledgedGiftsData[index];
-                        final gift = data['gift'] as Gift;
-                        final event = data['event'] as Event;
-
-                        return GiftItem(
-                          gift: gift,
-                          event: event,
-                          onDeleteGift: () {},
-                          showPledgedGiftDetails: true,
-                          // bgColor: Color(0x83CFCAC6),
-                        );
-                      },
-                    );
-                  }
-                },
-              )
+                          return GiftItem(
+                            gift: gift,
+                            event: event,
+                            onDeleteGift: () {},
+                            showPledgedGiftDetails: true,
+                          );
+                        },
+                      );
+                    }
+                  },
+                ),
+              ),
             ],
           ),
-        )
+        ),
       ),
     );
   }
