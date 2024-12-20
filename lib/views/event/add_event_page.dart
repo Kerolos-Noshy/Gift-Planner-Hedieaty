@@ -97,11 +97,9 @@ class _AddEventPageState extends State<AddEventPage> {
           
                   // Event Type Field
                   DropdownButtonFormField<String>(
-                    dropdownColor: Color(0xFFf5f4f3),
+                    dropdownColor: const Color(0xFFf5f4f3),
                     value: _eventType,
                     items: const [
-                      // weddings,
-                      // engagements, graduations, and holidays
                       DropdownMenuItem(value: 'Birthday', child: Text('Birthday')),
                       DropdownMenuItem(value: 'Engagement', child: Text('Engagement')),
                       DropdownMenuItem(value: 'Graduation', child: Text('Graduation')),
@@ -323,16 +321,6 @@ class _AddEventPageState extends State<AddEventPage> {
         isPublic: _isPublic,
       );
 
-      // if (_isPublic) {
-      //   // Add to Firestore
-      //   await EventService().addEvent(AuthService().getCurrentUser().uid, newEvent);
-      //   print('event added to firestore');
-      // }
-      //
-      // // Add to local database
-      // await EventRepository().addEvent(newEvent);
-      // print ('event added to local database');
-
       if (widget.event != null) { // edit
         if (_isPublic)
           await EventService().updateEvent(AuthService().getCurrentUser().uid, newEvent);
@@ -348,22 +336,23 @@ class _AddEventPageState extends State<AddEventPage> {
         String? docID;
         if (_isPublic) {
           docID = await EventService().addEvent(AuthService().getCurrentUser().uid, newEvent);
-          print(docID);
-          print('***********');
           newEvent.documentId = docID;
-          print(newEvent.documentId);
           await EventService().updateEvent(AuthService().getCurrentUser().uid, newEvent);
         }
-        await EventRepository().addEvent(newEvent);
+        int id = await EventRepository().addEvent(newEvent);
+        newEvent.id = id;
+        await EventRepository().updateEvent(newEvent);
+
 
         widget.onEventAdded();
+        Navigator.pop(context);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Event added successfully!")),
         );
       }
 
-      Navigator.popUntil(context, ModalRoute. withName(AppRoutes.homePage));
+
 
       _nameController.clear();
       _locationController.clear();
