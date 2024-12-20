@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
+import '../../constants/styles/app_styles.dart';
 import '../../models/event_model.dart';
 import '../../models/repositories/user_repository.dart';
 import '../../models/user_model.dart';
-import '../../routes/app_routes.dart';
+import '../../services/gift_service.dart';
 import '../../widgets/personal_event_card.dart';
-import '../../widgets/section_header_view_all.dart';
 
 class FriendProfile extends StatefulWidget {
   final User friendData;
@@ -80,7 +80,7 @@ class _FriendProfileState extends State<FriendProfile> {
                   ),
                   SizedBox(
                     child: Text(
-                      widget.friendData.email,
+                      widget.friendData.phone,
                       style: const TextStyle(
                         color: Colors.grey,
                         fontWeight: FontWeight.w500,
@@ -231,12 +231,36 @@ class _FriendProfileState extends State<FriendProfile> {
                         ),
                         child: Column(
                           children: [
-                            const Text(
-                              "30",
-                              style:  TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.w700,
-                              ),
+                            FutureBuilder(
+                                future: GiftService.getPledgedGifts(widget.friendData.id),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return const Center(
+                                        child: CircularProgressIndicator());
+                                  } else if (snapshot.hasError) {
+                                    return Center(child: Text(
+                                        'Error: ${snapshot.error}'));
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data == null) {
+                                    return const Center(
+                                        child: Text(
+                                          "0",
+                                          style: const TextStyle(
+                                            fontSize: 19,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ));
+                                  } else {
+                                    return Text(
+                                      snapshot.data!.length.toString(),
+                                      style: const TextStyle(
+                                        fontSize: 19,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    );
+                                  }
+                                }
                             ),
                             Text(
                                 "Gifts",
@@ -257,13 +281,15 @@ class _FriendProfileState extends State<FriendProfile> {
                 ],
               ),
             ),
-            const Padding(
-              padding: EdgeInsets.only(left: 25, right: 20),
-              // TODO: remove the view all button
-              child: SectionHeaderViewAll(
-                text: "Events",
-                route: AppRoutes.allFriends,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 25, right: 20, top: 20, bottom: 5),
+                  // TODO: remove the view all button
+                    child: Text("Events", style: AppStyles.headLineStyle2,)
+                ),
+              ],
             ),
             FutureBuilder<List<Event>>(
               future: EventService().fetchUserEvents(widget.friendData.id),
@@ -277,7 +303,7 @@ class _FriendProfileState extends State<FriendProfile> {
                 } else {
                   final events = snapshot.data!;
                   return SizedBox(
-                    height: 230,
+                    height: 240,
                     width: MediaQuery.of(context).size.width,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
@@ -305,7 +331,7 @@ class _FriendProfileState extends State<FriendProfile> {
                   );
                 }
               },
-            )
+            ),
           ],
         ),
       ),
