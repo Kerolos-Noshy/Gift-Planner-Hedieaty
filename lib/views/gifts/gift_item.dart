@@ -65,7 +65,7 @@ class _GiftItemState extends State<GiftItem> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 15),
+      margin: const EdgeInsets.only(top: 15),
       decoration: BoxDecoration(
         color: widget.bgColor,
         borderRadius: BorderRadius.circular(10),
@@ -239,9 +239,8 @@ class _GiftItemState extends State<GiftItem> {
             icon_bg_color: const Color(0xE0630FD3),
           ),
 
-          widget.showPledgedGiftDetails?
-          const SizedBox()
-          :CustomListTile(
+
+          CustomListTile(
             ico: widget.gift.pledgerId != null?Icons.check:Icons.close,
             text: widget.gift.pledgerId != null?"Pledged":"Not Pledged",
             iconSize: 18,
