@@ -1,5 +1,5 @@
 class Event {
-  final int? id; // Auto-incremented ID from the local database
+  int? id; // Auto-incremented ID from the local database
   late String? documentId = null; // Firestore document ID
   final String name;
   final DateTime date;
@@ -23,7 +23,6 @@ class Event {
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'document_id': documentId,
       'name': name,
       'date': date.toIso8601String(),
