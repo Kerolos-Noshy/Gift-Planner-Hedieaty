@@ -45,7 +45,6 @@ class _EventGiftListState extends State<EventGiftList> {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: add sortable by name, category, and status
     return Column(
       children: [
         Text(
@@ -54,7 +53,7 @@ class _EventGiftListState extends State<EventGiftList> {
               textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)
           ),
         ),
-        const SizedBox(height: 15,),
+
         widget.event.userId != AuthService().getCurrentUser().uid ?
         FutureBuilder<List<Gift>>(
           future: GiftService.fetchEventGifts(widget.event.userId, widget.event.documentId!),
@@ -156,6 +155,7 @@ class _EventGiftListState extends State<EventGiftList> {
           ),
         )
             :const SizedBox(),
+        const SizedBox(height: 15,),
       ],
     );
   }
