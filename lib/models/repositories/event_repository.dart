@@ -7,10 +7,14 @@ class EventRepository {
 
   EventRepository();
 
-  // Insert a new event
   Future<int> addEvent(Event event) async {
     final db = await _dbHelper.database;
-    return await db.insert(tableName, event.toMap());
+
+    int id = await db.insert(
+        tableName,
+        event.toMap()
+    );
+    return id;
   }
 
   // Retrieve an event by ID
@@ -29,8 +33,17 @@ class EventRepository {
     }
   }
 
+  Future<List<Event>> getAllEvents() async {
+    final db = await _dbHelper.database;
+    List<Map<String, dynamic>> results = await db.query(
+      tableName
+    );
+
+    return results.map((map) => Event.fromMap(map)).toList();
+  }
+
   // Retrieve all events for a specific user
-  Future<List<Event>> getEventsByUserId(String userId) async {
+  Future<List<Event>> getUserEvents(String userId) async {
     final db = await _dbHelper.database;
     List<Map<String, dynamic>> results = await db.query(
       tableName,
@@ -75,5 +88,30 @@ class EventRepository {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  Future<void> deleteEventWithGifts(int eventId) async {
+    final db = await _dbHelper.database;
+
+    try {
+      await db.transaction((txn) async {
+        await txn.delete(
+          'gifts',
+          where: 'event_id = ?',
+          whereArgs: [eventId],
+        );
+
+        await txn.delete(
+          'events',
+          where: 'id = ?',
+          whereArgs: [eventId],
+        );
+      });
+
+      print('Event and its gifts successfully deleted.');
+    } catch (e) {
+      print('Error deleting event and its gifts: $e');
+      throw Exception('Failed to delete event and its gifts.');
+    }
   }
 }
