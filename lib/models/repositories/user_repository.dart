@@ -15,9 +15,9 @@ class UserRepository {
     return result.isNotEmpty;
   }
 
-  Future<int> insertUser(User user) async {
+  Future<void> insertUser(User user) async {
     final db = await _dbHelper.database;
-    return await db.insert(tableName, user.toMap());
+    await db.insert(tableName, user.toMap());
   }
 
   Future<User?> getUserById(String userId) async {
@@ -36,48 +36,33 @@ class UserRepository {
     }
   }
 
-  Future<List<User>> getAllUsers() async {
-    final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query(tableName);
-    return maps.map((map) => User.fromMap(map)).toList();
-  }
-
-  Future<int> updateUser(User user) async {
-    final db = await _dbHelper.database;
-    return await db.update(tableName, user.toMap(), where: 'id = ?', whereArgs: [user.id]);
-  }
-
-  Future<int> deleteUser(String id) async {
-    final db = await _dbHelper.database;
-    return await db.delete(tableName, where: 'id = ?', whereArgs: [id]);
-  }
-
-  // Future<User?> getUserByFirebaseUid(String firebaseUid) async {
-  //   final db = await DatabaseHelper().database;
+  // Future<List<User>> getAllUsers() async {
+  //   final db = await _dbHelper.database;
+  //   final List<Map<String, dynamic>> maps = await db.query(tableName);
+  //   return maps.map((map) => User.fromMap(map)).toList();
+  // }
+  //
+  // Future<int> updateUser(User user) async {
+  //   final db = await _dbHelper.database;
+  //   return await db.update(tableName, user.toMap(), where: 'id = ?', whereArgs: [user.id]);
+  // }
+  //
+  // Future<int> deleteUser(String id) async {
+  //   final db = await _dbHelper.database;
+  //   return await db.delete(tableName, where: 'id = ?', whereArgs: [id]);
+  // }
+  //
+  // Future<User?> getUserByPhone(String phoneNumber) async {
+  //   final db = await _dbHelper.database;
   //   final result = await db.query(
-  //     'Users',
-  //     where: 'firebase_uid = ?',
-  //     whereArgs: [firebaseUid],
+  //     tableName,
+  //     where: 'phone = ?',
+  //     whereArgs: [phoneNumber],
   //     limit: 1,
   //   );
-  //   User? user;
-  //   if (result.isNotEmpty) {
-  //     user = User.fromMap(result.first);
-  //   }
-  //   return user;
+  //     if (result.isNotEmpty) {
+  //       return User.fromMap(result.first);
+  //     }
+  //   return null;
   // }
-
-  Future<User?> getUserByPhone(String phoneNumber) async {
-    final db = await _dbHelper.database;
-    final result = await db.query(
-      tableName,
-      where: 'phone = ?',
-      whereArgs: [phoneNumber],
-      limit: 1,
-    );
-      if (result.isNotEmpty) {
-        return User.fromMap(result.first);
-      }
-    return null;
-  }
 }
