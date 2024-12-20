@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hedieaty/models/repositories/user_repository.dart';
-import 'package:hedieaty/models/user_model.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/routes/app_routes.dart';
 
 import '../../services/auth_service.dart';
@@ -23,7 +22,7 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.white,
       body: Center(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20.0),
           child: Form(
             key: _formKey,
             child: Column(
@@ -31,24 +30,28 @@ class _LoginPageState extends State<LoginPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Logo or App Name
-                const Column(
+                Column(
                   children: [
-                    Icon(
-                      Icons.lock,
-                      size: 100,
-                      color: Colors.blue,
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      "Welcome Back",
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    Container(
+                      height: 350,
+                      width: 350,
+                      decoration: const BoxDecoration(
+                        image: DecorationImage(image: AssetImage('assets/images/login.png'))
                       ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                        "Welcome Back",
+                        style: GoogleFonts.ubuntu(
+                            textStyle: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.w600
+                            )
+                        )
                     ),
                   ],
                 ),
-                SizedBox(height: 40),
+                const SizedBox(height: 40),
 
                 // Email TextField
                 TextFormField(
@@ -56,7 +59,10 @@ class _LoginPageState extends State<LoginPage> {
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
                     labelText: 'Email',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.red, width: 50),
+                        borderRadius: BorderRadius.all(Radius.circular(10))
+                    ),
                     prefixIcon: Icon(Icons.email),
                   ),
                   validator: (value) {
@@ -73,9 +79,11 @@ class _LoginPageState extends State<LoginPage> {
                 TextFormField(
                   controller: _passwordController,
                   obscureText: true,
-                  decoration: const InputDecoration(
+                  decoration:  const InputDecoration(
                     labelText: 'Password',
-                    border: OutlineInputBorder(),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(10))
+                    ),
                     prefixIcon: Icon(Icons.lock),
                   ),
                   validator: (value) {
@@ -105,10 +113,6 @@ class _LoginPageState extends State<LoginPage> {
                           const SnackBar(content: Text('Login Successful!')),
                         );
                         Navigator.pushReplacementNamed(context, AppRoutes.homePage);
-                        User? user= await UserRepository().getUserById(AuthService().getCurrentUser().uid);
-                        print(user?.name);
-                        print(user?.id);
-                        print(AuthService().getCurrentUser().uid);
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Login Failed')),
@@ -117,14 +121,21 @@ class _LoginPageState extends State<LoginPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    backgroundColor: Colors.blueAccent
                   ),
-                  child: const Text(
-                    'Login',
-                    style: TextStyle(fontSize: 18),
+                  child: Text(
+                      "Login",
+                      style: GoogleFonts.cairo(
+                          textStyle: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white
+                          )
+                      )
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -136,7 +147,7 @@ class _LoginPageState extends State<LoginPage> {
                     const Text("Don't have an account?"),
                     TextButton(
                       onPressed: ()  {
-                        Navigator.pushReplacementNamed(context, AppRoutes.signup);
+                        Navigator.pushNamed(context, AppRoutes.signup);
                       },
                       child: const Text(
                         'Sign Up',

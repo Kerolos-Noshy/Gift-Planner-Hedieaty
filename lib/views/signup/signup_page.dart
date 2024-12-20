@@ -1,14 +1,14 @@
-import 'package:firebase_auth/firebase_auth.dart' as firestore;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firestore;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/repositories/user_repository.dart';
 import 'package:hedieaty/models/user_model.dart';
 import 'package:hedieaty/routes/app_routes.dart';
 import 'package:hedieaty/services/user_service.dart';
-
 import '../../services/auth_service.dart';
 
 class SignupPage extends StatefulWidget {
-  const SignupPage({super.key});
+  const SignupPage({Key? key}) : super(key: key);
 
   @override
   State<SignupPage> createState() => _SignupPageState();
@@ -28,10 +28,7 @@ class _SignupPageState extends State<SignupPage> {
   String? _phoneError;
 
   Future<void> _signUp() async {
-
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() {
       _isLoading = true;
@@ -42,27 +39,20 @@ class _SignupPageState extends State<SignupPage> {
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
-      User userData = User(
-        id: firebaseUser!.uid,
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        gender: _selectedGender!,
-      );
 
       if (firebaseUser != null) {
-        // add user to the fire store
+        final userData = User(
+          id: firebaseUser.uid,
+          name: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          email: _emailController.text.trim(),
+          gender: _selectedGender!,
+        );
 
-
-        // Save the user in the local database
         await UserRepository().insertUser(userData);
-        print("user added to local database");
-
         await UserService().addUser(userData);
-        print("user added to fire store");
 
-        // Navigate to the next screen (e.g., home page)
-        Navigator.pushReplacementNamed(context, AppRoutes.login);
+        Navigator.pop(context);
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,46 +67,58 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sign Up'),
+        title: Text(
+            "Sign Up",
+            style: GoogleFonts.markaziText(
+                textStyle: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w600
+                )
+            )
+        ),
+        backgroundColor: const Color(0xFFf5f4f3),
+        surfaceTintColor: const Color(0xFFf5f4f3),
+        shadowColor: Colors.grey,
       ),
-      body: Padding(
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              const Text(
+                "Create Your Account",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
                 controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Name'),
+                label: 'Name',
+                icon: Icons.person,
                 validator: (value) => value!.isEmpty ? 'Name is required' : null,
               ),
-              TextFormField(
+              _buildTextField(
                 controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
+                label: 'Phone Number',
+                icon: Icons.phone,
+                keyboardType: TextInputType.phone,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Phone number is required';
-                  }
-                  if (value.length != 11) {
-                    return 'Phone number must be exactly 11 digits';
-                  }
-                  return null; // No synchronous errors
+                  if (value == null || value.isEmpty) return 'Phone number is required';
+                  if (value.length != 11) return 'Phone number must be 11 digits';
+                  return null;
                 },
                 onChanged: (value) async {
-                  // Asynchronous phone number existence check
                   if (value.length == 11) {
-                    final phoneExists = await UserRepository().doesPhoneNumberExist(value);
-                    if (phoneExists) {
-                      setState(() {
-                        _phoneError = 'Phone number already exists';
-                      });
-                    } else {
-                      setState(() {
-                        _phoneError = null;
-                      });
-                    }
+                    final phoneExists = await UserService().doesPhoneNumberExist(value);
+                    setState(() {
+                      _phoneError = phoneExists ? 'Phone number already exists' : null;
+                    });
                   }
                 },
               ),
@@ -125,34 +127,41 @@ class _SignupPageState extends State<SignupPage> {
                   _phoneError!,
                   style: const TextStyle(color: Colors.red),
                 ),
-              TextFormField(
+              _buildTextField(
                 controller: _emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                label: 'Email',
+                icon: Icons.email,
                 keyboardType: TextInputType.emailAddress,
                 validator: (value) => value!.contains('@') ? null : 'Enter a valid email',
               ),
-              TextFormField(
+              _buildTextField(
                 controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
+                label: 'Password',
+                icon: Icons.lock,
                 obscureText: true,
                 validator: (value) =>
                 value!.length >= 6 ? null : 'Password must be at least 6 characters',
               ),
-              TextFormField(
+              _buildTextField(
                 controller: _confirmPasswordController,
-                decoration: const InputDecoration(labelText: 'Confirm Password'),
+                label: 'Confirm Password',
+                icon: Icons.lock_outline,
                 obscureText: true,
-                validator: (value) => value == _passwordController.text
-                    ? null
-                    : 'Passwords do not match',
+                validator: (value) =>
+                value == _passwordController.text ? null : 'Passwords do not match',
               ),
+              const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _selectedGender,
                 items: const [
                   DropdownMenuItem(value: 'm', child: Text('Male')),
                   DropdownMenuItem(value: 'f', child: Text('Female')),
                 ],
-                decoration: const InputDecoration(labelText: 'Gender'),
+                decoration: const InputDecoration(
+                  labelText: 'Gender',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
                 onChanged: (value) {
                   setState(() {
                     _selectedGender = value!;
@@ -160,14 +169,70 @@ class _SignupPageState extends State<SignupPage> {
                 },
                 validator: (value) => value == null ? 'Gender is required' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton(
-                    onPressed: _signUp,
-                    child: const Text('Sign Up'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    textStyle: const TextStyle(fontSize: 16),
+                      backgroundColor: Colors.blueAccent
+                  ),
+
+                  onPressed: _signUp,
+                  child: Text(
+                      "Sign Up",
+                      style: GoogleFonts.cairo(
+                          textStyle: const TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white
+                          )
+                      )
+                  ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacementNamed(context, AppRoutes.login);
+                },
+                child: Text(
+                  "Already have an account? Log in",
+                  style: TextStyle(color: theme.primaryColor),
+                ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    bool obscureText = false,
+    TextInputType keyboardType = TextInputType.text,
+    String? Function(String?)? validator,
+    void Function(String)? onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        obscureText: obscureText,
+        keyboardType: keyboardType,
+        validator: validator,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))
           ),
         ),
       ),
