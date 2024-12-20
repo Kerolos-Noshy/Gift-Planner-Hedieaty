@@ -37,7 +37,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppStyles.bgColor,
+      backgroundColor: const Color(0xFFf5f4f3),
       body: Center(child: appScreens[_selectedIndex]),
       bottomNavigationBar:
       // GNav(
