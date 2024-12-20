@@ -5,14 +5,16 @@ import 'package:hedieaty/models/repositories/event_repository.dart';
 import 'package:hedieaty/models/user_model.dart';
 import 'package:hedieaty/services/auth_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
+import 'package:hedieaty/services/gift_service.dart';
 import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/widgets/personal_event_card.dart';
 
 
+import '../../constants/styles/app_styles.dart';
 import '../../models/event_model.dart';
+import '../../models/gift_model.dart';
 import '../../models/repositories/user_repository.dart';
 import '../../routes/app_routes.dart';
-import '../../widgets/section_header_view_all.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -26,7 +28,7 @@ class _ProfilePageState extends State<ProfilePage> {
   User? userData;
   int _friendCount = 0;
   int _eventsCount = 0;
-  int _giftsCount = 0;
+  int _pledgedGiftsCount = 0;
 
   @override
   void initState() {
@@ -50,14 +52,15 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _getUserStats() async {
     var userid = AuthService().getCurrentUser().uid;
 
-    // Fetch data before updating the state
     List<User> friendsList = await FriendService().getFriends(userid);
     int eventsCount = await EventRepository().getEventsCountByUserId(userid);
+    List<Gift> pledgedGifts = await GiftService.getPledgedGifts(userid);
 
-    // Update the state once data is ready
+
     setState(() {
       _friendCount = friendsList.length;
       _eventsCount = eventsCount;
+      _pledgedGiftsCount = pledgedGifts.length;
     });
 
     // print("_friendCount updated to: $_friendCount");
@@ -65,6 +68,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    //TODO: add edit profile function
     return Scaffold(
       backgroundColor: const Color(0xFFf5f4f3),
       appBar: AppBar(
@@ -127,14 +131,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     SizedBox(
                       child: Text(
-                        userData!.email,
+                        userData!.phone,
                         style: const TextStyle(
                           color: Colors.grey,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 20,),
+                    const SizedBox(height: 10,),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -241,9 +245,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           child: Column(
                             children: [
-                              const Text(
-                                "30",
-                                style:  TextStyle(
+                              Text(
+                                _pledgedGiftsCount.toString(),
+                                style:  const TextStyle(
                                   fontSize: 19,
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -267,12 +271,15 @@ class _ProfilePageState extends State<ProfilePage> {
                   ],
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.only(left: 25, right: 20),
-                child: SectionHeaderViewAll(
-                  text: "My Events",
-                  route: AppRoutes.allFriends,
-                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const SizedBox(width: 25,),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 5),
+                    child: Text("My Events", style: AppStyles.headLineStyle2, ),
+                  ),
+                ],
               ),
               FutureBuilder<List<Event>>(
                 future: EventRepository().getUserEvents(AuthService().getCurrentUser().uid),
@@ -287,7 +294,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     final events = snapshot.data!;
                     return SizedBox(
                       width: MediaQuery.of(context).size.width,
-                      height: 276,
+                      height: 284,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: events.length,
@@ -322,7 +329,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: IconButton(
                   onPressed: () async {
-
+                    // TODO: check this work correctly
+                    // Navigator.pushReplacement(context,
+                    //     MaterialPageRoute(builder: (context) => BottomNavBar(selectedIndex: 2,),)
+                    // );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
