@@ -125,29 +125,115 @@ class EventService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> fetchEventsForNext7Days() async {
+  // Future<List<Event?>> fetchEventsForNext7Days(String userId) async {
+  //   try {
+  //     final now = DateTime.now();
+  //     final next7Days = now.add(const Duration(days: 7));
+  //
+  //     final friendsSnapshot = await _firestore
+  //         .collection('users')
+  //         .doc(userId)
+  //         .collection('friends')
+  //         .get();
+  //
+  //     List<String> friendsIds = [];
+  //     for (var doc in friendsSnapshot.docs) {
+  //       friendsIds.add(doc.id);
+  //     }
+  //
+  //     final querySnapshot = await _firestore
+  //         .collectionGroup('events') // Searches all subcollections named 'events'
+  //         .where('user_id', isNotEqualTo: userId)
+  //         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(now))
+  //         .where('date', isLessThanOrEqualTo: Timestamp.fromDate(next7Days))
+  //         .orderBy('date')
+  //         .get();
+  //
+  //     List<Event?> events = [];
+  //     for (var doc in querySnapshot.docs) {
+  //       final data = doc.data();
+  //       data['document_id'] = doc.id;
+  //       final eventUserId = data['user_id'];
+  //       print('Event user_id: $eventUserId');
+  //       if (friendsIds.contains(eventUserId)) {
+  //         // Do something if the user_id is a friend
+  //         print('$eventUserId is a friend');
+  //         events.add(Event.fromMap(data));
+  //       }
+  //     }
+  //     return events;
+  //
+  //     // final events = querySnapshot.docs
+  //     //     .map((doc) {
+  //     //   final data = doc.data();
+  //     //   data['document_id'] = doc.id;
+  //     //   final eventUserId = data['user_id'];
+  //     //   print('Event user_id: $eventUserId');
+  //     //
+  //     //   // Check if the event's user_id is in the friendsIds list
+  //     //   if (friendsIds.contains(eventUserId)) {
+  //     //     // Do something if the user_id is a friend
+  //     //     print('$eventUserId is a friend');
+  //     //   }
+  //     //
+  //     //   return Event.fromMap(data);
+  //     // }).toList();
+  //     //
+  //     // return events;
+  //   } catch (e) {
+  //     print('Error fetching events: $e');
+  //     return [];
+  //   }
+  // }
+
+  Future<List<Event?>> fetchEventsForNext7Days(String userId) async {
     try {
       final now = DateTime.now();
       final next7Days = now.add(const Duration(days: 7));
 
-      final eventsRef = FirebaseFirestore.instance.collection('events');
-
-      final querySnapshot = await eventsRef
-          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(now))
-          .where('date', isLessThanOrEqualTo: Timestamp.fromDate(next7Days))
+      final friendsSnapshot = await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('friends')
           .get();
 
-      final events = querySnapshot.docs.map((doc) {
-        return {
-          'id': doc.id,
-          ...doc.data(),
-        };
-      }).toList();
+      List<String> friendsIds = [];
+      for (var doc in friendsSnapshot.docs) {
+        friendsIds.add(doc.id);
+      }
+      final usersSnapshot = await _firestore.collection('users').get();
 
+      final List<Event> events = [];
+
+      for (var userDoc in usersSnapshot.docs) {
+        final userId = userDoc.id;
+        if (friendsIds.contains(userId)) {
+          final eventsSnapshot = await _firestore
+              .collection('users')
+              .doc(userId)
+              .collection('events')
+              .get();
+
+          for (var eventDoc in eventsSnapshot.docs) {
+            if (friendsIds.contains(eventDoc['user_id'])) {
+              final data = eventDoc.data();
+              if (DateTime.parse(data['date']).isAfter(now)
+                  && DateTime.parse(data['date']).isBefore(next7Days)) {
+                events.add(Event.fromMap(data));
+              }
+              // events.add({
+              //   'id': eventDoc.id,
+              //   ...eventDoc.data(),
+              // });
+            }
+          }
+        }
+      }
       return events;
     } catch (e) {
       print('Error fetching events: $e');
       return [];
     }
   }
+
 }
