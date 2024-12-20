@@ -7,6 +7,7 @@ import 'package:hedieaty/services/gift_service.dart';
 import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/views/event/text_field_with_icon.dart';
 import 'package:hedieaty/views/gifts/add_gift_page.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../models/event_model.dart';
 import '../../models/gift_model.dart';
@@ -254,7 +255,11 @@ class _GiftItemState extends State<GiftItem> {
               future: UserService().getUser(widget.gift.giftCreatorId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child:
+                  LoadingAnimationWidget.threeRotatingDots(
+                    color: Colors.orange,
+                    size: 30,
+                  ),);
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data == null) {
@@ -276,7 +281,11 @@ class _GiftItemState extends State<GiftItem> {
             future: UserService().getUser(widget.gift.pledgerId!),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+                return Center(child:
+                LoadingAnimationWidget.threeRotatingDots(
+                  color: Colors.orange,
+                  size: 30,
+                ),);
               } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data == null) {

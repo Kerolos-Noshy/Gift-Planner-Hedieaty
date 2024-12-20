@@ -8,6 +8,7 @@ import 'package:hedieaty/services/friend_service.dart';
 import 'package:hedieaty/services/gift_service.dart';
 import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/widgets/personal_event_card.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 
 import '../../constants/styles/app_styles.dart';
@@ -86,7 +87,11 @@ class _ProfilePageState extends State<ProfilePage> {
         shadowColor: Colors.grey,
       ),
       body: userData == null
-        ? const Center(child: CircularProgressIndicator())
+        ? Center(child:
+          LoadingAnimationWidget.threeRotatingDots(
+          color: Colors.orange,
+            size: 30,
+          ),)
         :SingleChildScrollView(
           child: Column(
             children: [
@@ -285,7 +290,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 future: EventRepository().getUserEvents(AuthService().getCurrentUser().uid),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child:
+                    LoadingAnimationWidget.threeRotatingDots(
+                      color: Colors.orange,
+                      size: 30,
+                    ),);
                   } else if (snapshot.hasError) {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -302,10 +311,14 @@ class _ProfilePageState extends State<ProfilePage> {
                           final event = events[index];
                           // return EventCardBig(event: event, eventCreator: ,);
                           return FutureBuilder(
-                              future: UserRepository().getUserById(event.userId),
+                              future: UserService().getUser(event.userId),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Center(child: CircularProgressIndicator());
+                                  return Center(child:
+                                  LoadingAnimationWidget.threeRotatingDots(
+                                    color: Colors.orange,
+                                    size: 30,
+                                  ),);
                                 } else if (snapshot.hasError) {
                                   return Center(child: Text('Error: ${snapshot.error}'));
                                 } else if (!snapshot.hasData || snapshot.data == null) {
@@ -324,12 +337,12 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
 
               // const SizedBox(height: 20,),
-              // TODO: remove this button if the navbar state is not accessible
+              // remove this button if the navbar state is not accessible
               // Padding(
               //   padding: const EdgeInsets.symmetric(horizontal: 15),
               //   child: IconButton(
               //     onPressed: () async {
-              //       // TODO: check this work correctly
+              //       // check this work correctly
               //       // Navigator.pushReplacement(context,
               //       //     MaterialPageRoute(builder: (context) => BottomNavBar(selectedIndex: 2,),)
               //       // );
@@ -392,29 +405,29 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
             const SizedBox(height: 10,),
 
-            ListTile(
-              leading: const Icon(Icons.room_preferences_outlined),
-              title: const Text(
-                "Preferences",
-                style: TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16
-                ),
-              ),
-              onTap: () {
-                print(DateTime(2024, 12, 18, 21, 30).isAfter(DateTime.now()));
-              },
-            ),
-            const ListTile(
-              title: Text(
-                "Settings",
-                  style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 16
-                  )
-              ),
-              leading: Icon(Icons.settings),
-            ),
+            // ListTile(
+            //   leading: const Icon(Icons.room_preferences_outlined),
+            //   title: const Text(
+            //     "Preferences",
+            //     style: TextStyle(
+            //         fontWeight: FontWeight.w500,
+            //         fontSize: 16
+            //     ),
+            //   ),
+            //   onTap: () {
+            //     print(DateTime(2024, 12, 18, 21, 30).isAfter(DateTime.now()));
+            //   },
+            // ),
+            // const ListTile(
+            //   title: Text(
+            //     "Settings",
+            //       style: TextStyle(
+            //           fontWeight: FontWeight.w500,
+            //           fontSize: 16
+            //       )
+            //   ),
+            //   leading: Icon(Icons.settings),
+            // ),
             ListTile(
               leading: const Icon(Icons.logout_rounded),
               title: const Text(

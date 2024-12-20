@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/repositories/event_repository.dart';
+import 'package:hedieaty/models/repositories/gift_repository.dart';
 import 'package:hedieaty/services/auth_service.dart';
 import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/gift_service.dart';
 import 'package:hedieaty/views/event/event_gift_list.dart';
 
 import '../../models/event_model.dart';
+import '../../models/gift_model.dart';
 import '../../models/user_model.dart';
 import '../../utils/utils.dart';
 import 'add_event_page.dart';
@@ -136,7 +138,6 @@ class _EventDetailsState extends State<EventDetails> {
                         // icon_bg_color: Color(0xB62C0A98)
                       ),
                       const SizedBox(height: _itemsMargin,),
-                      // TODO: add upcoming event or past status
 
                       CustomListTile(
                         ico: Icons.calendar_month,
@@ -244,10 +245,16 @@ class _EventDetailsState extends State<EventDetails> {
                               onPressed: () async {
                                 Event updatedEvent = _event;
                                 updatedEvent.isPublic = true;
-                                String? eventId = await EventService().addEvent(AuthService().getCurrentUser().uid, updatedEvent);
-                                updatedEvent.documentId = eventId;
+                                String? eventDocId = await EventService().addEvent(AuthService().getCurrentUser().uid, updatedEvent);
+                                updatedEvent.documentId = eventDocId;
                                 await EventRepository().updateEvent(updatedEvent);
                                 await EventService().updateEvent(AuthService().getCurrentUser().uid, updatedEvent);
+                                List <Gift> eventGifts = await GiftRepository().getGiftsByEventId(_event.id!);
+                                if (eventGifts.isNotEmpty) {
+                                  for (Gift g in eventGifts) {
+                                    await GiftService.addGift(_event.userId, _event.documentId!, g);
+                                  }
+                                }
               
                                 setState(() {
                                   _event = updatedEvent;

@@ -3,6 +3,7 @@ import 'package:hedieaty/models/repositories/user_repository.dart';
 import 'package:hedieaty/models/user_model.dart';
 import 'package:hedieaty/services/auth_service.dart';
 import 'package:hedieaty/widgets/friend_avatar.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 
 class EventCard extends StatelessWidget {
@@ -51,7 +52,11 @@ class EventCard extends StatelessWidget {
             future: UserRepository().getUserById(AuthService().getCurrentUser().uid),
             builder: (context, snapshot){
               if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+                return Center(child:
+                LoadingAnimationWidget.threeRotatingDots(
+                  color: Colors.orange,
+                  size: 30,
+                ),);
               } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
               } else if (!snapshot.hasData || snapshot.data == null) {

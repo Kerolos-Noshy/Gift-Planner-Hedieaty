@@ -7,6 +7,7 @@ import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
 import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/widgets/event_card_big.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../routes/app_routes.dart';
 import '../../widgets/section_header_view_all.dart';
@@ -27,6 +28,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFf5f4f3),
       body: CustomScrollView(
+        key: const Key("HomeAppbar"),
         slivers: [
           SliverAppBar(
             surfaceTintColor: const Color(0xffcfcfcf),
@@ -97,7 +99,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 20,),
 
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
+                padding: const EdgeInsets.symmetric(horizontal: 15),
                 child: Column(
                   children: [
                     FutureBuilder(
@@ -105,8 +107,11 @@ class _HomePageState extends State<HomePage> {
                         builder: (context, snapshot) {
                           if (snapshot.connectionState ==
                               ConnectionState.waiting) {
-                            return const Center(
-                                child: CircularProgressIndicator());
+                            return Center(child:
+                            LoadingAnimationWidget.threeRotatingDots(
+                              color: Colors.orange,
+                              size: 30,
+                            ),);
                           } else if (snapshot.hasError) {
                             return Center(child: Text(
                                 'Error: ${snapshot.error}'));
@@ -131,17 +136,53 @@ class _HomePageState extends State<HomePage> {
                           }
                         }
                     ),
-                    SizedBox(height: 20,)
+                    const SizedBox(height: 20,)
                   ],
                 ),
               ),
 
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
-                child: SectionHeaderViewAll(
-                  text: "Friends",
-                  route: AppRoutes.allFriends,
-                ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Row (
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Friends", style: AppStyles.headLineStyle2,),
+                  IconButton(
+                    key: const Key("AllFriendsPageButton"),
+                      tooltip: "View All",
+                      // highlightColor: Colors.transparent,
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.allFriends);
+                      },
+                      padding: const EdgeInsets.all(4),
+                      iconSize: 14,
+                      icon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(100),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.07),
+                              spreadRadius: 1,
+                              blurRadius: 10,
+                              // offset: const Offset(1, 5),
+                            ),
+                          ],
+                        ),
+                        child: Container(
+                            padding: const EdgeInsets.all(1),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(100),
+                              border: Border.all(width: 1.5),
+                            ),
+                            child: const Icon(Icons.keyboard_arrow_right_rounded, color: Colors.black,)
+                        ),
+                      )
+                  )
+                ],
+              )
               ),
               // const SizedBox(height: 10,),
               SizedBox(
@@ -151,7 +192,11 @@ class _HomePageState extends State<HomePage> {
                   future: FriendService().getFriends(AuthService().getCurrentUser().uid),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return Center(child:
+                      LoadingAnimationWidget.threeRotatingDots(
+                        color: Colors.orange,
+                        size: 30,
+                      ),);
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -167,7 +212,11 @@ class _HomePageState extends State<HomePage> {
                                 future: EventService().fetchUserEvents(friend.id),
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState == ConnectionState.waiting) {
-                                    return const Center(child: CircularProgressIndicator());
+                                    return Center(child:
+                                    LoadingAnimationWidget.threeRotatingDots(
+                                      color: Colors.orange,
+                                      size: 30,
+                                    ),);
                                   } else if (snapshot.hasError) {
                                     return Center(child: Text('Error: ${snapshot.error}'));
                                   } else if (!snapshot.hasData || snapshot.data == null) {
@@ -221,7 +270,11 @@ class _HomePageState extends State<HomePage> {
                   future: EventService().fetchEventsForNext7Days(AuthService().getCurrentUser().uid),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
+                      return Center(child:
+                      LoadingAnimationWidget.threeRotatingDots(
+                        color: Colors.orange,
+                        size: 30,
+                      ),);
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
                     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -240,7 +293,11 @@ class _HomePageState extends State<HomePage> {
                               future: UserService().getUser(event!.userId),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const Center(child: CircularProgressIndicator());
+                                  return Center(child:
+                                  LoadingAnimationWidget.threeRotatingDots(
+                                    color: Colors.orange,
+                                    size: 30,
+                                  ),);
                                 } else if (snapshot.hasError) {
                                   return Center(child: Text('Error: ${snapshot.error}'));
                                 } else if (!snapshot.hasData || snapshot.data == null) {

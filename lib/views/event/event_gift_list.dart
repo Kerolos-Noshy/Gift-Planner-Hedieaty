@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/repositories/gift_repository.dart';
 import 'package:hedieaty/services/gift_service.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 import '../../models/event_model.dart';
 import '../../models/gift_model.dart';
@@ -59,7 +60,11 @@ class _EventGiftListState extends State<EventGiftList> {
           future: GiftService.fetchEventGifts(widget.event.userId, widget.event.documentId!),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(child:
+              LoadingAnimationWidget.threeRotatingDots(
+                color: Colors.orange,
+                size: 30,
+              ),);
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -86,7 +91,11 @@ class _EventGiftListState extends State<EventGiftList> {
           future: GiftRepository().getGiftsByEventId(widget.event.id!),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return Center(child:
+              LoadingAnimationWidget.threeRotatingDots(
+                color: Colors.orange,
+                size: 30,
+              ),);
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {

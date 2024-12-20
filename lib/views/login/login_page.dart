@@ -55,6 +55,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 // Email TextField
                 TextFormField(
+                  key: const Key('LoginEmailField'),
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
@@ -77,6 +78,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 // Password TextField
                 TextFormField(
+                  key: const Key('LoginPasswordField'),
                   controller: _passwordController,
                   obscureText: true,
                   decoration:  const InputDecoration(
@@ -101,6 +103,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 // Login Button
                 ElevatedButton(
+                  key: const Key("LoginButton"),
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState?.save();
@@ -109,9 +112,9 @@ class _LoginPageState extends State<LoginPage> {
                             _emailController.text,
                             _passwordController.text
                         );
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Login Successful!')),
-                        );
+                        // ScaffoldMessenger.of(context).showSnackBar(
+                        //   const SnackBar(content: Text('Login Successful!')),
+                        // );
                         Navigator.pushReplacementNamed(context, AppRoutes.homePage);
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(

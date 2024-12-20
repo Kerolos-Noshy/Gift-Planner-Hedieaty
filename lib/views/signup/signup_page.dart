@@ -5,6 +5,7 @@ import 'package:hedieaty/models/repositories/user_repository.dart';
 import 'package:hedieaty/models/user_model.dart';
 import 'package:hedieaty/routes/app_routes.dart';
 import 'package:hedieaty/services/user_service.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../services/auth_service.dart';
 
 class SignupPage extends StatefulWidget {
@@ -171,7 +172,11 @@ class _SignupPageState extends State<SignupPage> {
               ),
               const SizedBox(height: 24),
               _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ?  Center(child:
+                      LoadingAnimationWidget.threeRotatingDots(
+                      color: Colors.orange,
+                        size: 30,
+                      ),)
                   : ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 8),
