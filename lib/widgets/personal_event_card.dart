@@ -115,7 +115,6 @@ class _PersonalEventCardState extends State<PersonalEventCard> {
                         ico: Icons.calendar_month,
                         text: formatDate(widget.event.date)
                     ),
-                    // TODO: add a function that calculate the difference between now and event day
                     EventCardFieldSmall(
                       ico: Icons.access_time_outlined,
                       text: TimeOfDay(
