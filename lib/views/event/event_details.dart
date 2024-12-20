@@ -3,11 +3,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/repositories/event_repository.dart';
 import 'package:hedieaty/services/auth_service.dart';
 import 'package:hedieaty/services/event_service.dart';
+import 'package:hedieaty/services/gift_service.dart';
+import 'package:hedieaty/views/event/event_gift_list.dart';
 
 import '../../models/event_model.dart';
 import '../../models/user_model.dart';
 import '../../utils/utils.dart';
-import '../gifts/gift_item.dart';
 import 'add_event_page.dart';
 import 'text_field_with_icon.dart';
 
@@ -30,11 +31,24 @@ class EventDetails extends StatefulWidget {
 class _EventDetailsState extends State<EventDetails> {
   static const double _itemsMargin = 15;
   late Event _event;
+  bool giftsPledged = false;
+
 
   @override
   void initState() {
     super.initState();
     _event = widget.eventData;
+    _getPledgedGiftsNumber();
+  }
+
+  Future<void> _getPledgedGiftsNumber() async {
+    int pledgedGiftsNum;
+    if (_event.documentId != null)
+      pledgedGiftsNum = await GiftService.countPledgedGifts(AuthService().getCurrentUser().uid, _event.documentId!);
+    else
+      pledgedGiftsNum = 0;
+
+    giftsPledged = pledgedGiftsNum > 0;
   }
 
   @override
@@ -115,13 +129,13 @@ class _EventDetailsState extends State<EventDetails> {
                         // icon_bg_color: Color(0xB62C0A98)
                       ),
                       const SizedBox(height: _itemsMargin,),
-                      // TODO: if the event passed hide the visibility and the remaining days from the event card
-                      // widget.eventData.date.isAfter(DateTime.now())?
+                      // TODO: add upcoming event or past status
+
                       CustomListTile(
                         ico: Icons.calendar_month,
                         text: formatDate(_event.date),
               
-                        trailing: calculateDaysDifference(_event.date) > 0?
+                        trailing: widget.eventData.date.isAfter(DateTime.now()) && calculateDaysDifference(_event.date) > 0?
                         "after ${calculateDaysDifference(_event.date).toString()} days" : "",
                         // icon_bg_color: Color(0xB62C0A98)
                       ),
@@ -171,7 +185,8 @@ class _EventDetailsState extends State<EventDetails> {
                       _event.description.isNotEmpty?
                       const SizedBox(height: _itemsMargin,)
                           : const SizedBox(),
-                      widget.eventCreator.id == AuthService().getCurrentUser().uid?
+                      widget.eventCreator.id == AuthService().getCurrentUser().uid
+                          && widget.eventData.date.isAfter(DateTime.now())?
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -263,10 +278,15 @@ class _EventDetailsState extends State<EventDetails> {
                               ),
                             ),
                           ),
+
+                          // hide this button if any gift is pledged
+                          giftsPledged? const SizedBox():
                           _event.isPublic ? const SizedBox(width: 20,):
                           const SizedBox(width: 13,),
-              
-                          Expanded(
+
+                          giftsPledged?
+                          const SizedBox()
+                          :Expanded(
                             child: IconButton(
                               onPressed: () {
                                 showDialog(
@@ -276,27 +296,36 @@ class _EventDetailsState extends State<EventDetails> {
                                       title: const Text('Confirm Deletion'),
                                       content: const Text('Are you sure you want to delete this event?'),
                                       actions: [
-                                        TextButton(
+                                        IconButton(
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
-                                          child: const Text('Cancel'),
+                                          icon: Text(
+                                              "Cancel",
+                                              style: GoogleFonts.breeSerif(
+                                                textStyle: const TextStyle(
+                                                  color: Colors.blue,
+                                                  fontSize: 15,
+
+                                                ),
+                                              )
+                                          ),
                                         ),
-                                        TextButton(
+                                        IconButton(
                                           onPressed: () async {
                                             Navigator.of(context).pop();
                                             try {
-                                              // Call the delete function
+
+                                              Navigator.of(context).pop();
+
                                               if (widget.eventData.isPublic)
-                                                await EventService().deleteEvent(AuthService().getCurrentUser().uid, widget.eventData);
-              
-                                              await EventRepository().deleteEvent(widget.eventData.id!);
+                                                await EventService().deleteEventWithGifts(AuthService().getCurrentUser().uid, widget.eventData.documentId!);
+
+                                              await EventRepository().deleteEventWithGifts(widget.eventData.id!);
                                               // setState(() {
                                               //
                                               // });
                                               widget.onEventDeleted();
-                                              Navigator.of(context).pop();
-              
                                               ScaffoldMessenger.of(context).showSnackBar(
                                                 const SnackBar(content: Text('Event deleted successfully')),
                                               );
@@ -306,7 +335,33 @@ class _EventDetailsState extends State<EventDetails> {
                                               );
                                             }
                                           },
-                                          child: const Text('Delete'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            padding: const EdgeInsets.symmetric(vertical: 1),
+                                          ),
+                                          icon: SizedBox(
+                                            width: 90,
+                                            child: Row(
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  const Icon(Icons.delete, color: Colors.white, size: 22,),
+                                                  const SizedBox(width: 8,),
+                                                  Text(
+                                                      "Delete",
+                                                      style: GoogleFonts.breeSerif(
+                                                        textStyle: const TextStyle(
+                                                          color: Colors.white,
+                                                          fontSize: 15,
+                                                        ),
+                                                      )
+                                                  ),
+                                                  const SizedBox(width: 4,),
+                                                ]
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     );
@@ -314,7 +369,7 @@ class _EventDetailsState extends State<EventDetails> {
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xD0C30909),
+                                backgroundColor: const Color(0xD0C30909),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(7),
                                 ),
@@ -343,64 +398,12 @@ class _EventDetailsState extends State<EventDetails> {
                         ],
                       )
                           :const SizedBox(),
-              
                       const SizedBox(height: 10,),
               
                       const Divider(),
                       const SizedBox(height: 10,),
-                      Text(
-                        "Gifts List",
-                        style: GoogleFonts.lato(
-                            textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600)
-                        ),
-                      ),
-                      const SizedBox(height: 15,),
-                      GiftItem(
-                        text: "Messi's T-Shirt",
-                        isPledged: true,
-                        giftCreator: widget.eventCreator,
-                        // icon_bg_color: Colors.grey,
-                      ),
-                      GiftItem(
-                        text: "Messi's T-Shirt Messi's T-Shirt Messi's T-Shirt",
-                        giftCreator: widget.eventCreator,
-                      ),
-              
-                      const SizedBox(height: 10,),
-              
-                      // TODO: show add gift button for the event creator only
-                      widget.eventCreator.id == AuthService().getCurrentUser().uid?
-                      IconButton(
-                        onPressed: () {
-              
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
-                        ),
-              
-                        icon: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.add, color: Colors.white,),
-                              const SizedBox(width: 2,),
-                              Text(
-                                  "Add Gift",
-                                  style: GoogleFonts.breeSerif(
-                                    textStyle: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                  )
-                              ),
-                              const SizedBox(width: 8,),
-                            ]
-                        ),
-                      )
-                      :const SizedBox(),
+
+                      EventGiftList(eventCreator: widget.eventCreator ,event: widget.eventData,),
                     ],
                   )
                 ),
