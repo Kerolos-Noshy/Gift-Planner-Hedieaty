@@ -21,7 +21,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
     const HomePage(),
     const EventsPage(),
     const GiftsPage(),
-    const NotificationsPage(),
+    // const NotificationsPage(),
     const ProfilePage(),
   ];
 
@@ -100,24 +100,24 @@ class _BottomNavBarState extends State<BottomNavBar> {
             label: "Gifts",
             tooltip: "Gifts",
           ),
-          BottomNavigationBarItem(
-            icon: Stack(
-              alignment: AlignmentDirectional(5, -3.5),
-                children: [
-                  Icon(FluentSystemIcons.ic_fluent_alert_regular),
-                  NotificationCircle(num:5)
-                ]
-            ),
-            activeIcon: Stack(
-                alignment: AlignmentDirectional(5, -3.5),
-                children: [
-                  Icon(FluentSystemIcons.ic_fluent_alert_filled),
-                  NotificationCircle(num:5)
-                ]
-            ),
-            label: "Notifications",
-            tooltip: "Notifications",
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Stack(
+          //     alignment: AlignmentDirectional(5, -3.5),
+          //       children: [
+          //         Icon(FluentSystemIcons.ic_fluent_alert_regular),
+          //         NotificationCircle(num:5)
+          //       ]
+          //   ),
+          //   activeIcon: Stack(
+          //       alignment: AlignmentDirectional(5, -3.5),
+          //       children: [
+          //         Icon(FluentSystemIcons.ic_fluent_alert_filled),
+          //         NotificationCircle(num:5)
+          //       ]
+          //   ),
+          //   label: "Notifications",
+          //   tooltip: "Notifications",
+          // ),
           BottomNavigationBarItem(
             icon: Icon(FluentSystemIcons.ic_fluent_person_regular),
             activeIcon: Icon(FluentSystemIcons.ic_fluent_person_filled),
