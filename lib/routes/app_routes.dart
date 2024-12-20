@@ -8,6 +8,7 @@ class AppRoutes{
   static const addEvent = "/add_event";
   static const gifts = "/gifts";
   static const events = "/events";
+  static const addGift = "/add_gift";
 
 
 }
