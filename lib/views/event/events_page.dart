@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/models/event_model.dart';
 import 'package:hedieaty/services/auth_service.dart';
-import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/views/event/add_event_page.dart';
 import 'package:hedieaty/widgets/event_card_big.dart';
-
 import '../../models/repositories/event_repository.dart';
 import '../../models/user_model.dart';
 
@@ -20,18 +18,40 @@ class EventsPage extends StatefulWidget {
 
 class _EventsPageState extends State<EventsPage> {
   List<Event> events = [];
-
-  Future<void> _fetchEvents() async {
-    events = await EventService().fetchUserEvents(AuthService.getCurrentUserId());
-    setState(() {
-
-    });
-  }
+  String _sortCriterion = 'Name';
 
   @override
   void initState() {
     super.initState();
     _fetchEvents();
+  }
+
+  Future<void> _fetchEvents() async {
+    events = await EventRepository().getUserEvents(AuthService().getCurrentUser().uid);
+    _sortEvents();
+    setState(() {});
+  }
+
+  void _sortEvents() {
+    setState(() {
+      events.sort((a, b) {
+
+        switch (_sortCriterion) {
+          case 'Category':
+            return a.eventType.compareTo(b.eventType);
+          case 'Status':
+            // Sort upcoming and past events
+            final statusA = a.date.isAfter(DateTime.now()) ? 0 : 1;
+            final statusB = b.date.isAfter(DateTime.now()) ? 0 : 1;
+            return statusA.compareTo(statusB);
+          case 'Date':
+            return a.date.compareTo(b.date);
+          case 'Name':
+          default:
+            return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+        }
+      });
+    });
   }
 
   @override
@@ -42,76 +62,89 @@ class _EventsPageState extends State<EventsPage> {
         surfaceTintColor: const Color(0xFFf5f4f3),
         shadowColor: Colors.grey,
         title: Text(
-            "All Events",
-            style: GoogleFonts.markaziText(
-                textStyle: const TextStyle(
-                    fontSize: 35,
-                    fontWeight: FontWeight.w600
-                )
-            )
+          "All Events",
+          style: GoogleFonts.markaziText(
+            textStyle: const TextStyle(fontSize: 35, fontWeight: FontWeight.w600),
+          ),
         ),
         actions: [
           IconButton(
-              onPressed: (){
-                // Navigator.pushNamed(context, AppRoutes.addEvent);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AddEventPage(
-
-                      onEventAdded: _fetchEvents, event: null,
-                    ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AddEventPage(
+                    onEventAdded: _fetchEvents, event: null,
                   ),
-                );
-              },
-              icon: const Icon(
-                FluentSystemIcons.ic_fluent_calendar_add_regular,
-                size: 27,
-              ),
+                ),
+              );
+            },
+            icon: const Icon(FluentSystemIcons.ic_fluent_calendar_add_regular, size: 27),
             tooltip: "Add Event",
             padding: const EdgeInsets.symmetric(horizontal: 0),
           ),
-          const SizedBox(width: 15,)
+          const SizedBox(width: 10),
+          const Icon(Icons.sort_outlined),
+          const SizedBox(width: 5),
+          DropdownButton<String>(
+            value: _sortCriterion,
+            dropdownColor: Colors.white,
+            items: [
+              DropdownMenuItem(
+                value: 'Name',
+                child: Text('Name', style: GoogleFonts.markaziText(textStyle: const TextStyle(fontSize: 22))),
+              ),
+              DropdownMenuItem(
+                value: 'Category',
+                child: Text('Category', style: GoogleFonts.markaziText(textStyle: const TextStyle(fontSize: 22))),
+              ),
+              DropdownMenuItem(
+                value: 'Status',
+                child: Text('Status', style: GoogleFonts.markaziText(textStyle: const TextStyle(fontSize: 22))),
+              ),
+              DropdownMenuItem(
+                value: 'Date',
+                child: Text('Date', style: GoogleFonts.markaziText(textStyle: const TextStyle(fontSize: 22))),
+              ),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                setState(() {
+                  _sortCriterion = value;
+                });
+                _sortEvents();
+              }
+            },
+          ),
         ],
       ),
       backgroundColor: const Color(0xFFf5f4f3),
       body: SafeArea(
-        child: FutureBuilder<List<Event>>(
-          future: EventRepository().getUserEvents(AuthService().getCurrentUser().uid),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No events found.'));
-            } else {
-              final events = snapshot.data!;
-              return ListView.builder(
-                itemCount: events.length,
-                itemBuilder: (context, index) {
-                  final event = events[index];
-                  // return EventCardBig(event: event, eventCreator: ,);
-                  return FutureBuilder(
-                    future: UserService().getUser(event.userId),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                      } else if (!snapshot.hasData || snapshot.data == null) {
-                      return const Center(child: Text('No events found.'));
-                      } else {
-                        User? user = snapshot.data!;
-                        return EventCardBig(event: event, eventCreator: user, onEventDeleted: _fetchEvents,);
-                      }
-                    }
+        child: ListView.builder(
+          itemCount: events.length,
+          itemBuilder: (context, index) {
+            final event = events[index];
+            return FutureBuilder(
+              future: UserService().getUser(event.userId),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const SizedBox();
+                } else if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                } else if (!snapshot.hasData || snapshot.data == null) {
+                  return const Center(child: Text('No events found.'));
+                } else {
+                  User? user = snapshot.data!;
+                  return EventCardBig(
+                    event: event,
+                    eventCreator: user,
+                    onEventDeleted: _fetchEvents,
                   );
-                },
-              );
-            }
+                }
+              },
+            );
           },
-        )
+        ),
       ),
     );
   }
