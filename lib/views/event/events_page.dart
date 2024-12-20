@@ -6,6 +6,7 @@ import 'package:hedieaty/services/auth_service.dart';
 import 'package:hedieaty/services/user_service.dart';
 import 'package:hedieaty/views/event/add_event_page.dart';
 import 'package:hedieaty/widgets/event_card_big.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../models/repositories/event_repository.dart';
 import '../../models/user_model.dart';
 
@@ -29,7 +30,8 @@ class _EventsPageState extends State<EventsPage> {
   Future<void> _fetchEvents() async {
     events = await EventRepository().getUserEvents(AuthService().getCurrentUser().uid);
     _sortEvents();
-    setState(() {});
+    setState(() {
+    });
   }
 
   void _sortEvents() {
@@ -62,7 +64,7 @@ class _EventsPageState extends State<EventsPage> {
         surfaceTintColor: const Color(0xFFf5f4f3),
         shadowColor: Colors.grey,
         title: Text(
-          "All Events",
+          "My Events",
           style: GoogleFonts.markaziText(
             textStyle: const TextStyle(fontSize: 35, fontWeight: FontWeight.w600),
           ),
@@ -127,11 +129,15 @@ class _EventsPageState extends State<EventsPage> {
             return FutureBuilder(
               future: UserService().getUser(event.userId),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const SizedBox();
-                } else if (snapshot.hasError) {
+                if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data == null) {
+                } else if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child:
+                  LoadingAnimationWidget.threeRotatingDots(
+                    color: Colors.orange,
+                    size: 30,
+                  ),);
+                } else if (!snapshot.hasData || snapshot.data == null || events.isEmpty) {
                   return const Center(child: Text('No events found.'));
                 } else {
                   User? user = snapshot.data!;

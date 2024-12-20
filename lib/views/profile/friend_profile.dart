@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
 import 'package:hedieaty/services/user_service.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import '../../constants/styles/app_styles.dart';
 import '../../models/event_model.dart';
 import '../../models/user_model.dart';
@@ -113,8 +114,11 @@ class _FriendProfileState extends State<FriendProfile> {
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
+                                    return Center(child:
+                                    LoadingAnimationWidget.threeRotatingDots(
+                                      color: Colors.orange,
+                                      size: 30,
+                                    ),);
                                   } else if (snapshot.hasError) {
                                     return Center(child: Text(
                                         'Error: ${snapshot.error}'));
@@ -175,8 +179,11 @@ class _FriendProfileState extends State<FriendProfile> {
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
+                                    return Center(child:
+                                    LoadingAnimationWidget.threeRotatingDots(
+                                      color: Colors.orange,
+                                      size: 30,
+                                    ),);
                                   } else if (snapshot.hasError) {
                                     return Center(child: Text(
                                         'Error: ${snapshot.error}'));
@@ -236,8 +243,11 @@ class _FriendProfileState extends State<FriendProfile> {
                                 builder: (context, snapshot) {
                                   if (snapshot.connectionState ==
                                       ConnectionState.waiting) {
-                                    return const Center(
-                                        child: CircularProgressIndicator());
+                                    return Center(child:
+                                    LoadingAnimationWidget.threeRotatingDots(
+                                      color: Colors.orange,
+                                      size: 30,
+                                    ),);
                                   } else if (snapshot.hasError) {
                                     return Center(child: Text(
                                         'Error: ${snapshot.error}'));
@@ -294,7 +304,11 @@ class _FriendProfileState extends State<FriendProfile> {
               future: EventService().fetchUserEvents(widget.friendData.id),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return Center(child:
+                  LoadingAnimationWidget.threeRotatingDots(
+                    color: Colors.orange,
+                    size: 30,
+                  ),);
                 } else if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -314,7 +328,11 @@ class _FriendProfileState extends State<FriendProfile> {
                             future: UserService().getUser(event.userId),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const Center(child: CircularProgressIndicator());
+                                return Center(child:
+                                LoadingAnimationWidget.threeRotatingDots(
+                                  color: Colors.orange,
+                                  size: 30,
+                                ),);
                               } else if (snapshot.hasError) {
                                 return Center(child: Text('Error: ${snapshot.error}'));
                               } else if (!snapshot.hasData || snapshot.data == null) {
