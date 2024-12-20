@@ -79,11 +79,64 @@ class _EventCardBigState extends State<EventCardBig> {
                             text: widget.event.eventType
                         ),
                         // TODO: create a function that return the number of the remaining gifts of event
-                        const EventCardFieldSmall(
-                            ico: Icons.card_giftcard_rounded,
-                            text: "Remaining Gifts: 4"
+                        // widget.event.isPublic?
+                        // FutureBuilder(
+                        //     future: GiftService.countUnPledgedGifts(widget.event.userId, widget.event.documentId!),
+                        //     builder: (context, snapshot) {
+                        //       if (snapshot.connectionState ==
+                        //           ConnectionState.waiting) {
+                        //         return const Center(
+                        //             child: CircularProgressIndicator());
+                        //       } else if (snapshot.hasError) {
+                        //         return Center(child: Text(
+                        //             'Error: ${snapshot.error}'));
+                        //       } else if (!snapshot.hasData ||
+                        //           snapshot.data == null) {
+                        //         return const Center(
+                        //             child: const EventCardFieldSmall(
+                        //             ico: Icons.card_giftcard_rounded,
+                        //             text: "Remaining Gifts: 0"
+                        //           )
+                        //         );
+                        //       } else {
+                        //         return EventCardFieldSmall(
+                        //             ico: Icons.card_giftcard_rounded,
+                        //             text: "Remaining Gifts: ${snapshot.data}"
+                        //         );
+                        //       }
+                        //     }
+                        // )
+                        // :FutureBuilder(
+                        //     future: GiftRepository().getGiftsCountByEventId(widget.event.id!),
+                        //     builder: (context, snapshot) {
+                        //       if (snapshot.connectionState ==
+                        //           ConnectionState.waiting) {
+                        //         return const Center(
+                        //             child: CircularProgressIndicator());
+                        //       } else if (snapshot.hasError) {
+                        //         return Center(child: Text(
+                        //             'Error: ${snapshot.error}'));
+                        //       } else if (!snapshot.hasData ||
+                        //           snapshot.data == null) {
+                        //         return const Center(
+                        //             child: const EventCardFieldSmall(
+                        //                 ico: Icons.card_giftcard_rounded,
+                        //                 text: "Remaining Gifts: 0"
+                        //             )
+                        //         );
+                        //       } else {
+                        //         return EventCardFieldSmall(
+                        //             ico: Icons.card_giftcard_rounded,
+                        //             text: "Remaining Gifts: ${snapshot.data}"
+                        //         );
+                        //       }
+                        //     }
+                        // ),
+                        EventCardFieldSmall(
+                          ico: Icons.event_outlined,
+                          text: widget.event.date.isAfter(DateTime.now())? "Upcoming Event": "Past Event",
+                          // icon_bg_color: widget.event.isPublic?Colors.orange:Colors.red,
                         ),
-                        // TODO: add a condition for event status (private or public)
                         widget.event.isPublic ?
                         const EventCardFieldSmall(
                           ico: Icons.visibility_outlined,
@@ -118,10 +171,11 @@ class _EventCardBigState extends State<EventCardBig> {
                                 minute: widget.event.date.minute
                             ).format(context),
                         ),
+                        calculateDaysDifference(widget.event.date) >= 1?
                         EventCardFieldSmall(
                           ico: Icons.timer_outlined,
                           text: "After ${calculateDaysDifference(widget.event.date).toString()} days",
-                        ),
+                        ): const SizedBox()
                       ],
                     ),
                     const SizedBox(width: 10,),
