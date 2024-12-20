@@ -323,44 +323,44 @@ class _ProfilePageState extends State<ProfilePage> {
                 },
               ),
 
-              const SizedBox(height: 20,),
+              // const SizedBox(height: 20,),
               // TODO: remove this button if the navbar state is not accessible
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: IconButton(
-                  onPressed: () async {
-                    // TODO: check this work correctly
-                    // Navigator.pushReplacement(context,
-                    //     MaterialPageRoute(builder: (context) => BottomNavBar(selectedIndex: 2,),)
-                    // );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-
-                  icon: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(FluentSystemIcons.ic_fluent_gift_regular, color: Colors.white,),
-                        const SizedBox(width: 5,),
-                        Text(
-                            "My Pledged Gifts",
-                            style: GoogleFonts.breeSerif(
-                              textStyle: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 17,
-                              ),
-                            )
-                        ),
-                        const SizedBox(width: 8,),
-                      ]
-                  ),
-                ),
-              ),
+              // Padding(
+              //   padding: const EdgeInsets.symmetric(horizontal: 15),
+              //   child: IconButton(
+              //     onPressed: () async {
+              //       // TODO: check this work correctly
+              //       // Navigator.pushReplacement(context,
+              //       //     MaterialPageRoute(builder: (context) => BottomNavBar(selectedIndex: 2,),)
+              //       // );
+              //     },
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.blueAccent,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(10),
+              //       ),
+              //       padding: const EdgeInsets.symmetric(vertical: 12),
+              //     ),
+              //
+              //     icon: Row(
+              //         mainAxisAlignment: MainAxisAlignment.center,
+              //         children: [
+              //           const Icon(FluentSystemIcons.ic_fluent_gift_regular, color: Colors.white,),
+              //           const SizedBox(width: 5,),
+              //           Text(
+              //               "My Pledged Gifts",
+              //               style: GoogleFonts.breeSerif(
+              //                 textStyle: const TextStyle(
+              //                   color: Colors.white,
+              //                   fontSize: 17,
+              //                 ),
+              //               )
+              //           ),
+              //           const SizedBox(width: 8,),
+              //         ]
+              //     ),
+              //   ),
+              // ),
             ],
           ),
         ),
