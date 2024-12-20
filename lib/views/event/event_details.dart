@@ -121,6 +121,13 @@ class _EventDetailsState extends State<EventDetails> {
                         ),
                       ),
                       const SizedBox(height: 50,),
+
+                      CustomListTile(
+                        ico: Icons.event_note,
+                        text: _event.name,
+                        // icon_bg_color: Color(0xB62C0A98)
+                      ),
+                      const SizedBox(height: _itemsMargin,),
               
                       // const SizedBox(height: 20,),
                       CustomListTile(
