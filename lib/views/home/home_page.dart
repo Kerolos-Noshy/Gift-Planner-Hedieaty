@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hedieaty/models/repositories/event_repository.dart';
+import 'package:hedieaty/models/event_model.dart';
 import 'package:hedieaty/models/user_model.dart';
 import 'package:hedieaty/services/auth_service.dart';
+import 'package:hedieaty/services/event_service.dart';
 import 'package:hedieaty/services/friend_service.dart';
 
 import '../../routes/app_routes.dart';
@@ -96,20 +97,28 @@ class _HomePageState extends State<HomePage> {
                         itemBuilder: (context, index) {
                           final friend = friends[index];
                           return FutureBuilder(
-                            // TODO: get the events count from fire store
-                              future: EventRepository().getEventsCountByUserId(friend.id),
+                              future: EventService().fetchUserEvents(friend.id),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState == ConnectionState.waiting) {
                                   return const Center(child: CircularProgressIndicator());
                                 } else if (snapshot.hasError) {
                                   return Center(child: Text('Error: ${snapshot.error}'));
-                                } else if (!snapshot.hasData || snapshot.data! == null) {
+                                } else if (!snapshot.hasData || snapshot.data == null) {
                                   return const Center(child: Text('No friends found.'));
                                 } else {
+                                  List<Event>? events = snapshot.data;
+                                  int eventsCount = 0;
+                                  // count only the upcoming events
+                                  for (Event e in events!) {
+                                    if (e.date.isAfter(DateTime.now())) {
+                                      eventsCount += 1;
+                                    }
+                                  }
+
                                   return Row(
                                     children: [
                                       const SizedBox(width: 15,),
-                                      FriendAvatar(friend: friend),
+                                      FriendAvatar(friend: friend, eventsCount: eventsCount),
                                     ],
                                   );
                                 }
@@ -121,13 +130,16 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ),
-              const SizedBox(height: 10,),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 15),
-                child: SectionHeaderViewAll(
-                  text: "Next Week Events",
-                  route: AppRoutes.allFriends,
-                ),
+              const SizedBox(height: 20,),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+
+                    child: Text("Next Week Events", style: AppStyles.headLineStyle2,),
+                  ),
+                ],
               ),
               // const SizedBox(height: 10,),
               const SingleChildScrollView(
